@@ -2755,8 +2755,7 @@ SURF 0
     FIMP 
     CURV {c_value:.4e} 1 0 0 0 ""
     HIDE 0 0 0 0 0 0 0 0 0 0
-    MIRR 2 0
-"""                 
+    MIRR 2 0"""                 
                     if self.is_asphere:
                         surf_str2 = f"""
     SLAB 6
@@ -2773,8 +2772,7 @@ SURF 0
     PARM 6 {s.ai12.item():.12e}
     VPAR 6
     PARM 7 0
-    PARM 8 0
-"""
+    PARM 8 0"""
                     else:
                         surf_str2 = ''
                     glass_string = self.materials[i+1].glassname
@@ -2791,7 +2789,7 @@ SURF 0
     POPS 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0
     FLAP 0 {s.r} 0
 """
-                    surf_str = surf_str1 + "\n" + surf_str2 + "\n" + surf_str3
+                    surf_str = surf_str1 + surf_str2 + surf_str3
                     f.writelines(surf_str)
 
                 # even surface
@@ -2802,8 +2800,7 @@ SURF 0
     FIMP 
     CURV {c_value:.4e} 1 0 0 0 ""
     HIDE 0 0 0 0 0 0 0 0 0 0
-    MIRR 2 0
-"""
+    MIRR 2 0"""
                         if self.is_asphere:
                             surf_str2 = f"""
     SLAB 6
@@ -2820,8 +2817,7 @@ SURF 0
     PARM 6 {s.ai12.item():.12e}
     VPAR 6
     PARM 7 0
-    PARM 8 0
-"""
+    PARM 8 0"""
                         else:
                             surf_str2 = ''
                         surf_str3 = f"""
@@ -2832,7 +2828,7 @@ SURF 0
     POPS 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0
     FLAP 0 {s.r} 0
 """
-                        surf_str = surf_str1 + "\n" + surf_str2 + "\n" + surf_str3
+                        surf_str = surf_str1 + surf_str2 + surf_str3
                     # last even surface, distance is computed by r_last
                     else:
                         surf_str1 = f"""SURF {i+1}
@@ -2840,8 +2836,7 @@ SURF 0
     FIMP 
     CURV {c_value:.4e} 0 0 0 0 ""
     HIDE 0 0 0 0 0 0 0 0 0 0
-    MIRR 2 0
-"""
+    MIRR 2 0"""
                         if self.is_asphere:
                             surf_str2 = f"""      
     SLAB 6
@@ -2852,8 +2847,7 @@ SURF 0
     PARM 5 {s.ai10.item():.10e}
     PARM 6 {s.ai12.item():.12e}
     PARM 7 0
-    PARM 8 0
-"""
+    PARM 8 0"""
                         else:
                             surf_str2 = ''
                         surf_str3 = f"""
@@ -2863,7 +2857,7 @@ SURF 0
     DIAM {s.r} 1 0 0 1 ""
     POPS 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0
 """
-                        surf_str = surf_str1 + "\n" + surf_str2 + "\n" + surf_str3
+                        surf_str = surf_str1 + surf_str2 + surf_str3
                     f.writelines(surf_str)
 
         # => Sensor file
@@ -2871,8 +2865,7 @@ SURF 0
     TYPE STANDARD
     CURV 0.
     DISZ 0.0
-    DIAM {self.r_last}
-"""
+    DIAM {self.r_last}"""
         f.writelines(sensor_str)
         
         f.close()
