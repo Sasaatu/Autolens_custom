@@ -2761,9 +2761,13 @@ SURF 0
 """
                     else:
                         surf_str2 = ''
+                    if self.materials[i+1].glassname == 'glass_nV':
+                        glass_name = '___BLANK'
+                    else:
+                        glass_name = self.materials[i+1].glassname
                     surf_str3 = f"""
     DISZ {self.surfaces[i+1].d.item()-self.surfaces[i].d.item():.6e}
-    GLAS {self.materials[i+1].glassname} 0 0 {self.materials[i+1].n} {self.materials[i+1].V}
+    GLAS {glass_name} 0 0 {self.materials[i+1].n} {self.materials[i+1].V}
     CONI {k_value:.6e}
     VDSZ 0 0
     DIAM {s.r} 1 0 0 1 ""
@@ -2861,7 +2865,7 @@ SURF 0
 # ====================================================================================
 # Other functions.
 # ====================================================================================
-def create_lens(rff=1.0, flange=1.0, d_aper=0.5, d_sensor=None, hfov=0.6, imgh=6, fnum=2.8, surfnum=4, dir='.'):
+def create_lens(rff=1.0, flange=1.0, d_aper=0.5, d_sensor=None, hfov=0.6, imgh=6, fnum=2.8, surfnum=4, glass=[], dir='.'):
     """ Create a flat starting point for cellphone lens design.
 
         Aperture is placed 0.2mm i front of the first surface.
@@ -2911,7 +2915,8 @@ def create_lens(rff=1.0, flange=1.0, d_aper=0.5, d_sensor=None, hfov=0.6, imgh=6
         if i % 2 == 0:
             mat_name = 'air'
         else:
-            mat_name = 'zeon'
+            i_glass = round((i-1)/2)
+            mat_name = glass[i_glass]
         mat = Material(name=mat_name)
         materials.append(mat)
     

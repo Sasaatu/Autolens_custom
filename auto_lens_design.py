@@ -103,7 +103,7 @@ def main(filename):
 
     # =====> 1. Load or create lens
     if args['brute_force']:
-        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=args['HFOV'], imgh=args['DIAG'], fnum=args['FNUM'], surfnum=args['element'], dir=result_dir)
+        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=args['HFOV'], imgh=args['DIAG'], fnum=args['FNUM'], surfnum=args['element'], glass=args['GLASS'], dir=result_dir)
         lens_name = f'./{result_dir}/starting_point_hfov{args["HFOV"]}_imgh{args["DIAG"]}_fnum{args["FNUM"]}.txt'
         lens = deeplens.Lensgroup(filename=lens_name, device=device)
         lens.wave = args['WAVES']

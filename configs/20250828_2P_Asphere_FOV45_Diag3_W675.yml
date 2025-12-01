@@ -32,3 +32,4 @@ is_sphere: True
 is_conic: True
 is_asphere: True
 WAVES: [675]
+GLASS: [[1.5346, 56.10], [1.5346, 56.10]]

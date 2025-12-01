@@ -45,7 +45,6 @@ MATERIAL_TABLE = {
     "pc":           [1.5855,   29.91],
     "okp4ht":       [1.6328,   23.34],
     "okp4":         [1.6328,   23.34],
-    "zeon":         [1.5346,   56.10],
     
     "apl5014cl":    [1.5445,   55.987],
     "d-k59":        [1.5176,   63.500],
@@ -269,18 +268,27 @@ class Material():
         # https://www.schott.com/en-dk/interactive-abbe-diagram
         # https://refractiveindex.info/ 
         
-        self.name = 'vacuum' if name is None else name.lower()
-        self.A, self.B = self._lookup_material()
-        
-        if self.name in SELLMEIER_TABLE:
-            self.dispersion = 'sellmeier'
-            self.k1, self.l1, self.k2, self.l2, self.k3, self.l3 = SELLMEIER_TABLE[self.name]
-            self.glassname = self.name
-        elif self.name in SCHOTT_TABLE:
-            self.dispersion = 'schott'
-            self.a0, self.a1, self.a2, self.a3, self.a4, self.a5 = SCHOTT_TABLE[self.name]
-            self.glassname = GLASS_NAME[self.name]
+        if isinstance(name, str):
+            # search by glass name
+            self.name = 'vacuum' if name is None else name.lower()
+            self.A, self.B = self._lookup_material()
+            if self.name in SELLMEIER_TABLE:
+                self.dispersion = 'sellmeier'
+                self.k1, self.l1, self.k2, self.l2, self.k3, self.l3 = SELLMEIER_TABLE[self.name]
+                self.glassname = self.name
+            elif self.name in SCHOTT_TABLE:
+                self.dispersion = 'schott'
+                self.a0, self.a1, self.a2, self.a3, self.a4, self.a5 = SCHOTT_TABLE[self.name]
+                self.glassname = GLASS_NAME[self.name]
+            else:
+                self.dispersion = 'naive'
+                self.glassname = self.name
         else:
+            # seach by nd/Vd
+            self.name = 'glass_nV'
+            self.n = name[0]
+            self.V = name[1]
+            self.A, self.B = self.nV_to_AB(self.n, self.V)
             self.dispersion = 'naive'
             self.glassname = self.name
 
