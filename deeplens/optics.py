@@ -2624,8 +2624,15 @@ class Lensgroup():
                 surf_dict['d_next'] = self.surfaces[i+1].d.item() - self.surfaces[i].d.item()
             else:
                 surf_dict['d_next'] = self.d_sensor - self.surfaces[i].d.item()
-            surf_dict['mat1'] = self.materials[i].name
-            surf_dict['mat2'] = self.materials[i+1].name
+            
+            mat1_name = self.materials[i].name
+            mat2_name = self.materials[i+1].name
+            if mat1_name.startswith('nV_'):
+                mat1_name = mat1_name[3:].replace('_', ',')
+            if mat2_name.startswith('nV_'):
+                mat2_name = mat2_name[3:].replace('_', ',')
+            surf_dict['mat1'] = mat1_name
+            surf_dict['mat2'] = mat2_name
             
             data['surfaces'].append(surf_dict)
 
