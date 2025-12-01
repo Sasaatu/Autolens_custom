@@ -1,0 +1,34 @@
+# => experiment options
+DEBUG: True
+brute_force: True
+EXP_NAME: '2P-Asphere-FOV45-FN4_0-Diag3_0-W600'
+seed: 1
+
+# Modify the following parameters if you want to design you own lens
+# ==================
+# Design spec
+HFOV: 0.39 # half diagonal FoV in radian, foclen = imgh / 2 / np.tan(hfov)
+FNUM: 4.0 # F-number, fnum = foclen/aper_D
+DIAG: 3.0  # sensor diagonal length in mm, imgh = diag, hfov = arctan(diag / 2 / foclen)
+element: 2  # lens element number
+# ==================
+
+curriculum_steps: 5 # number of intermediate steps
+FNUM_START: 6
+DIAG_START: 2
+
+# Learning rate
+lrs: [5e-4, 1e-4, 1e-1, 1e-4] # learning rate for c, d, k, ai
+ai_lr_decay: 0.1
+
+# Random initialization
+ai_degree: 6  # degree of even asphere
+flange: 1.2   # distance from last surface to sensor
+rff: 1.33     # d_sensor = imgh * rff # total distance
+d_aper: 0.2   # aperture thickness, d_sensor = d_opt + d_apt + flange
+
+# New parameters
+is_sphere: True
+is_conic: True
+is_asphere: True
+WAVES: [600]

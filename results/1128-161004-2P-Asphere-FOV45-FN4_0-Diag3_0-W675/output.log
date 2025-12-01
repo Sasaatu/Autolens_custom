@@ -1,0 +1,10 @@
+2025-11-28 16:10:04:INFO:EXP: 2P-Asphere-FOV45-FN4_0-Diag3_0-W675
+2025-11-28 16:10:04:INFO:Using 1 GPUs
+2025-11-28 16:10:05:INFO:==> Design target: FOV 44.69, DIAG 3.0mm, F/4.0, FOCLEN 3.65mm.
+2025-11-28 16:10:08:INFO:==> Curriculum learning step 0, target: FOV 30.65, DIAG 2.0mm, F/6.0.
+2025-11-28 16:10:08:INFO:lr:[0.0005, 0.0001, 0.1, 0.0001], decay:0.1, iterations:1, spp:256, M:31.
+2025-11-28 16:10:15:INFO:==> Curriculum learning step 1, target: FOV 46.69, DIAG 3.15mm, F/3.8.
+2025-11-28 16:10:15:INFO:lr:[0.0005, 0.0001, 0.1, 0.0001], decay:0.1, iterations:1, spp:256, M:31.
+2025-11-28 16:10:31:INFO:lr:[0.0005, 0.0001, 0.1, 0.0001], decay:0.1, iterations:1, spp:256, M:31.
+2025-11-28 16:10:38:INFO:==> Training finish.
+2025-11-28 16:10:39:INFO:Actual: FOV 0.4352053701877594, IMGH 1.5, F/3.5364399832972717.
