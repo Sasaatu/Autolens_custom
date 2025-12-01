@@ -2482,7 +2482,16 @@ class Lensgroup():
                     ls = line.split()
                     surface_type, d, r = ls[0], float(ls[1]), float(ls[3])/2    # d: distance, r: radius
                     roc = float(ls[2])  # radius of curvature
-                    materials.append(Material(ls[4]))
+                    glass_string = ls[4]    # glass
+                    if glass_string.startswith('nV_'):
+                        idcs = [i for i, c in enumerate(glass_string) if c == '_']
+                        n_value = float(glass_string[idcs[0]+1 : idcs[1]])
+                        V_value = float(glass_string[idcs[1]+1 : ])
+                        mat_name = [n_value, V_value]
+                    else:
+                        mat_name = glass_string
+                    mat = Material(name=mat_name)
+                    materials.append(mat)
                     
                     d_total += d
                     ds.append(d)
@@ -2761,10 +2770,11 @@ SURF 0
 """
                     else:
                         surf_str2 = ''
-                    if self.materials[i+1].glassname == 'glass_nV':
+                    glass_string = self.materials[i+1].glassname
+                    if glass_string.startswith('nV_'):
                         glass_name = '___BLANK'
                     else:
-                        glass_name = self.materials[i+1].glassname
+                        glass_name = glass_string
                     surf_str3 = f"""
     DISZ {self.surfaces[i+1].d.item()-self.surfaces[i].d.item():.6e}
     GLAS {glass_name} 0 0 {self.materials[i+1].n} {self.materials[i+1].V}

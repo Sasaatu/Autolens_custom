@@ -285,7 +285,7 @@ class Material():
                 self.glassname = self.name
         else:
             # seach by nd/Vd
-            self.name = 'glass_nV'
+            self.name = 'nV_'+str(self.n)+'_'+str(self.V)
             self.n = name[0]
             self.V = name[1]
             self.A, self.B = self.nV_to_AB(self.n, self.V)
