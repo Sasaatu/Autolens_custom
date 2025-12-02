@@ -7,26 +7,26 @@ from auto_lens_design import default_inputs, define_lens, config, curriculum_lea
 if __name__ == '__main__':
     args = default_inputs
     
-    # custom parmeters
-    epd = 0.5
-    fov = 37.0
-    image_height = 8.0
-    total_distance = 5.0
-    num_lens = 2
-    Glasses = [[1.5346, 56.10], [1.5346, 56.10]]
-    Waves = [675]
+    # # custom parmeters
+    # epd = 0.5
+    # fov = 37.0
+    # image_height = 8.0
+    # total_distance = 5.0
+    # num_lens = 2
+    # Glasses = [[1.5346, 56.10], [1.5346, 56.10]]
+    # Waves = [675]
     
-    # update inputs
-    hfov_rad = np.deg2rad(fov) / 2
-    fnum = image_height/(2*epd*np.tan(hfov_rad))
-    rff = total_distance/image_height
-    args['HFOV'] = hfov_rad
-    args['FNUM'] = fnum
-    args['DIAG'] = image_height
-    args['element'] = num_lens
-    args['rff'] = rff
-    args['GLASS'] = Glasses
-    args['WAVES'] = Waves
+    # # update inputs
+    # hfov_rad = np.deg2rad(fov) / 2
+    # fnum = image_height/(2*epd*np.tan(hfov_rad))
+    # rff = total_distance/image_height
+    # args['HFOV'] = hfov_rad
+    # args['FNUM'] = fnum
+    # args['DIAG'] = image_height
+    # args['element'] = num_lens
+    # args['rff'] = rff
+    # args['GLASS'] = Glasses
+    # args['WAVES'] = Waves
     
     # arrange design configuration
     args = config(args)

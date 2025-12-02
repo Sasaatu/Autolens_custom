@@ -114,13 +114,13 @@ def default_inputs():
     args['element'] = 2
 
     # curriculum steps
-    args['curriculum_steps'] = 1
+    args['curriculum_steps'] = 5
     args['FNUM_START'] = 6
     args['DIAG_START'] = 2
-    args['iter'] = 1      # 1000
-    args['iter_test'] = 1 # 50
-    args['iter_last'] = 1 # 5000
-    args['iter_test_last'] = 1 # 100
+    args['iter'] = 100  # 1000
+    args['iter_test'] = 10  # 50
+    args['iter_last'] = 100 # 5000
+    args['iter_test_last'] = 10 # 100
 
     # Learning rate
     args['lrs'] = [5e-4, 1e-4, 1e-1, 1e-4]
