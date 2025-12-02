@@ -13,21 +13,6 @@ from deeplens.utils import *
 from deeplens.optics import create_lens
 
 
-def change_lens(lens, diag, fnum):
-    """ Change lens for each curriculum step.
-    """
-    # sensor
-    lens.r_last = float(diag / 2)
-    lens.hfov = float(np.arctan(lens.r_last / lens.foclen))
-
-    # aperture
-    lens.fnum = float(fnum)
-    aper_r = lens.foclen / lens.fnum / 2
-    lens.surfaces[lens.aper_idx].r = aper_r
-    
-    return lens
-
-
 def curriculum_learning(lens, args):
     """ Curriculum learning for lens design.
     """
@@ -105,6 +90,21 @@ def define_lens(args):
     return lens
 
 
+def change_lens(lens, diag, fnum):
+    """ Change lens for each curriculum step.
+    """
+    # sensor
+    lens.r_last = float(diag / 2)
+    lens.hfov = float(np.arctan(lens.r_last / lens.foclen))
+
+    # aperture
+    lens.fnum = float(fnum)
+    aper_r = lens.foclen / lens.fnum / 2
+    lens.surfaces[lens.aper_idx].r = aper_r
+    
+    return lens
+
+
 def default_inputs():
     """ Set default inputs for lens design
     """
@@ -164,6 +164,7 @@ def config(args):
     os.makedirs(result_dir, exist_ok=True)
     args['result_dir'] = result_dir
     
+    # rondom seed
     set_seed(args['seed'])
     
     # Log
