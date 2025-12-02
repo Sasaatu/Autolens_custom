@@ -124,10 +124,10 @@ def default_inputs():
     args['curriculum_steps'] = 5
     args['FNUM_START'] = 6
     args['DIAG_START'] = 2
-    args['iter'] = 100  # 1000
-    args['iter_test'] = 10  # 50
-    args['iter_last'] = 100 # 5000
-    args['iter_test_last'] = 10 # 100
+    args['iter'] = 5            # 1000
+    args['iter_test'] = 5       # 50
+    args['iter_last'] = 5       # 5000
+    args['iter_test_last'] = 5  # 100
 
     # Learning rate
     args['lrs'] = [5e-4, 1e-4, 1e-1, 1e-4]
@@ -147,6 +147,7 @@ def default_inputs():
     args['GLASS'] = [[1.5346, 56.10], [1.5346, 56.10]]
     
     return args
+
 
 def config(args):
     """ Config file for training.
