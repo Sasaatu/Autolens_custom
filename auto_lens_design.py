@@ -4,6 +4,7 @@ import string
 import argparse
 import yaml
 import os
+import math
 import logging
 from datetime import datetime
 import torch
@@ -70,11 +71,17 @@ def curriculum_learning(lens, args):
 def define_lens(args):
     """ Create lens instance
     """
+    HFOV = args['HFOV']
+    FNUM = args['FNUM']
+    DIAG = args['DIAG']
+    result_dir = args['result_dir']
+    device = args['device']
+
     # =====> 1. Load or create lens
     if args['brute_force']:
-        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=args['HFOV'], imgh=args['DIAG'], fnum=args['FNUM'], surfnum=args['element'], glass=args['GLASS'], dir=result_dir)
-        lens_name = f'./{args['result_dir']}/starting_point_hfov{args["HFOV"]}_imgh{args["DIAG"]}_fnum{args["FNUM"]}.txt'
-        lens = deeplens.Lensgroup(filename=lens_name, device=args['device'])
+        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=HFOV, imgh=DIAG, fnum=FNUM, surfnum=args['element'], glass=args['GLASS'], dir=result_dir)
+        lens_name = f'./{result_dir}/starting_point_hfov{HFOV}_imgh{DIAG}_fnum{FNUM}.txt'
+        lens = deeplens.Lensgroup(filename=lens_name, device=device)
         lens.wave = args['WAVES']
         lens.is_sphere = args['is_sphere']
         lens.is_conic = args['is_conic']
@@ -91,9 +98,9 @@ def define_lens(args):
         lens = deeplens.Lensgroup(filename=args['filename'])
         lens.correct_shape()
     
-    lens.set_target_fov_fnum(hfov=args['HFOV'], fnum=args['FNUM'], imgh=args['DIAG'])
-    logging.info(f'==> Design target: FOV {round(args["HFOV"]*2*57.3, 2)}, DIAG {args["DIAG"]}mm, F/{args["FNUM"]}, FOCLEN {round(args["DIAG"]/2/np.tan(args["HFOV"]), 2)}mm.')
-    lens.analysis(save_name=f'{args['result_dir']}/lens_starting_point')
+    lens.set_target_fov_fnum(hfov=HFOV, fnum=FNUM, imgh=DIAG)
+    logging.info(f'==> Design target: FOV {round(HFOV*2*57.3, 2)}, DIAG {DIAG}mm, F/{FNUM}, FOCLEN {round(DIAG/2/math.tan(HFOV), 2)}mm.')
+    lens.analysis(save_name=f'{result_dir}/lens_starting_point')
     
     return lens
 
@@ -146,10 +153,10 @@ def config(args):
     """
     # Result dir
     num_lens = args['element']
-    fov_rad  = args['HFOV']*2
+    hfov_rad  = args['HFOV']
     fnum = args['FNUM']
     img_h = args['DIAG']
-    epd  = img_h / (2 * fnum * np.tan(fov_rad/2))
+    epd  = img_h / (2 * fnum * math.tan(hfov_rad))
     tot_dist = img_h * args['rff']
     current_time = datetime.now().strftime("%m%d-%H%M%S")
     exp_name = current_time + '-' + str(num_lens) + 'P' + '_Epd' + str(epd) + '_ImgH' + str(img_h) + '_TotLen' + str(tot_dist)
@@ -171,51 +178,3 @@ def config(args):
     logging.info(f'Using {num_gpus} GPUs')
 
     return args
-
-
-# def main(filename):
-#     args = config(filename)
-#     result_dir = args['result_dir']
-#     device = args['device']
-
-#     # =====> 1. Load or create lens
-#     if args['brute_force']:
-#         create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=args['HFOV'], imgh=args['DIAG'], fnum=args['FNUM'], surfnum=args['element'], glass=args['GLASS'], dir=result_dir)
-#         lens_name = f'./{result_dir}/starting_point_hfov{args["HFOV"]}_imgh{args["DIAG"]}_fnum{args["FNUM"]}.txt'
-#         lens = deeplens.Lensgroup(filename=lens_name, device=device)
-#         lens.wave = args['WAVES']
-#         lens.is_sphere = args['is_sphere']
-#         lens.is_conic = args['is_conic']
-#         lens.is_asphere = args['is_asphere']
-#         for i in lens.find_diff_surf():
-#             if lens.is_sphere:
-#                 lens.surfaces[i].init_c()
-#             if lens.is_conic:
-#                 lens.surfaces[i].init_k()
-#             if lens.is_asphere:
-#                 lens.surfaces[i].init_ai(args['ai_degree'])
-#             lens.surfaces[i].init_d()
-#     else:
-#         lens = deeplens.Lensgroup(filename=args['filename'])
-#         lens.correct_shape()
-    
-#     lens.set_target_fov_fnum(hfov=args['HFOV'], fnum=args['FNUM'], imgh=args['DIAG'])
-#     logging.info(f'==> Design target: FOV {round(args["HFOV"]*2*57.3, 2)}, DIAG {args["DIAG"]}mm, F/{args["FNUM"]}, FOCLEN {round(args["DIAG"]/2/np.tan(args["HFOV"]), 2)}mm.')
-#     lens.analysis(save_name=f'{result_dir}/lens_starting_point')
-
-#     # =====> 2. Curriculum learning with RMS errors
-#     curriculum_learning(lens, args)
-
-#     # =====> 3. Analyze final result
-#     lens.prune(outer=0.2)
-#     lens.post_computation()
-
-#     logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
-#     lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
-#     lens.write_lens_json(f'{result_dir}/final_lens.json')
-#     lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
-
-
-# if __name__=='__main__':
-#     filename = './configs/20250828_2P_Asphere_FOV45_Diag3_W675.yml'
-#     main(filename)
