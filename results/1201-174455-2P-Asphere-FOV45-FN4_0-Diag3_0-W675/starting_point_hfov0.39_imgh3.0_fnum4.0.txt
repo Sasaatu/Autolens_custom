@@ -1,9 +1,0 @@
-optimized lens file.
-type    distance   roc      diameter    material
-O   0         0         0        AIR
-S 0.0000 0.0000 0.91 air 0.00 
-S 0.200 0.0000 3.00 nV_1.5346_56.1 0.00 
-S 1.370 0.0000 3.00 air 0.00 
-S 0.534 0.0000 3.00 nV_1.5346_56.1 0.00 
-S 0.685 0.0000 3.00 air 0.00 
-I 1.200 0.0 3.00 air

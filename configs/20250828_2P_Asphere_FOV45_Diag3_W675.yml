@@ -24,8 +24,8 @@ ai_lr_decay: 0.1
 # Random initialization
 ai_degree: 6  # degree of even asphere
 flange: 1.2   # distance from last surface to sensor
-rff: 1.33     # d_sensor = imgh * rff # total distance
 d_aper: 0.2   # aperture thickness, d_sensor = d_opt + d_apt + flange
+rff: 1.33     # d_sensor = imgh * rff # total distance
 
 # New parameters
 is_sphere: True
