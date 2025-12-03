@@ -94,21 +94,6 @@ def change_lens(lens, diag, fnum):
     """ Change lens for each curriculum step.
     """
     # sensor
-    lens.r_last = float(diag / 2)
-    lens.hfov = float(np.arctan(lens.r_last / lens.foclen))
-
-    # aperture
-    lens.fnum = float(fnum)
-    aper_r = lens.foclen / lens.fnum / 2
-    lens.surfaces[lens.aper_idx].r = aper_r
-    
-    return lens
-
-
-def change_lens(lens, diag, fnum):
-    """ Change lens for each curriculum step.
-    """
-    # sensor
     lens.r_last = diag / 2
     lens.hfov = np.arctan(lens.r_last / lens.foclen)
 
