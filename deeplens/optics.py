@@ -2681,6 +2681,11 @@ class Lensgroup():
     def write_zmx(self, filename='./test.zmx'):
         """ Write the lens into .zmx file.
         """
+        # wavelengths in micro
+        waves_micro = [w / 1000 for w in self.wave]
+        WAVL_string = ' '.join([f'{w:.7f}' for w in waves_micro])
+        WWGT_string = ' '.join(['1' for w in waves_micro])
+        
         # Process lensgroup data
         for s in self.surfaces:
             if isinstance(s, Aspheric) and s.ai_degree == 5:
@@ -2702,7 +2707,8 @@ GFAC 0 0
 GCAT OSAKAGASCHEMICAL MISC
 XFLN 0. 0. 0.
 YFLN 0.0 {0.707*self.hfov*57.3} {0.99*self.hfov*57.3}
-WAVL 0.4861327 0.5875618 0.6562725
+WAVL {WAVL_string}
+WWGT {WWGT_string}
 RAIM 0 0 1 1 0 0 0 0 0
 PUSH 0 0 0 0 0 0
 SDMA 0 1 0
