@@ -109,11 +109,11 @@ def change_lens(lens, diag, fnum):
     """ Change lens for each curriculum step.
     """
     # sensor
-    lens.r_last = float(diag / 2)
-    lens.hfov = float(np.arctan(lens.r_last / lens.foclen))
+    lens.r_last = diag / 2
+    lens.hfov = np.arctan(lens.r_last / lens.foclen)
 
     # aperture
-    lens.fnum = float(fnum)
+    lens.fnum = fnum
     aper_r = lens.foclen / lens.fnum / 2
     lens.surfaces[lens.aper_idx].r = aper_r
     
@@ -137,13 +137,12 @@ def default_inputs():
 
     # curriculum steps
     args['curriculum_steps'] = 5
-    args['curriculum_steps'] = 5
     args['FNUM_START'] = 6
     args['DIAG_START'] = 2
-    args['iter'] = 5            # 1000
-    args['iter_test'] = 5       # 50
-    args['iter_last'] = 5       # 5000
-    args['iter_test_last'] = 5  # 100
+    args['iter'] = 200
+    args['iter_test'] = 20
+    args['iter_last'] = 400
+    args['iter_test_last'] = 20
 
     # Learning rate
     args['lrs'] = [5e-4, 1e-4, 1e-1, 1e-4]
@@ -163,7 +162,6 @@ def default_inputs():
     args['GLASS'] = [[1.5346, 56.10], [1.5346, 56.10]]
     
     return args
-
 
 
 def config(args):

@@ -1491,7 +1491,7 @@ class Lensgroup():
         self.hfov = hfov
         self.fnum = fnum
         
-        self.foclen = float(self.calc_efl())
+        self.foclen = self.calc_efl()
         aper_r = self.foclen / fnum / 2
         self.surfaces[self.aper_idx].r = aper_r
 
@@ -1547,19 +1547,19 @@ class Lensgroup():
                     continue
 
             try:
-                self.surfaces[i].r = float(max(height) + outer)
+                self.surfaces[i].r = max(height) + outer
             except:
                 continue
         
         # ==> 3. Front surface should be smaller than back surface. This does not apply to fisheye lens.
         for i in surface_range[:-1]:
             if self.materials[i].A < self.materials[i+1].A:
-                self.surfaces[i].r = float(min(self.surfaces[i].r, self.surfaces[i+1].r))
+                self.surfaces[i].r = min(self.surfaces[i].r, self.surfaces[i+1].r)
 
         # ==> 4. Remove nan part, also the maximum height should not exceed sensor radius
         for i in surface_range:
             max_height = min(self.surfaces[i].max_height(), self.r_last)
-            self.surfaces[i].r = float(min(self.surfaces[i].r, max_height))
+            self.surfaces[i].r = min(self.surfaces[i].r, max_height)
 
 
     @torch.no_grad()
@@ -2372,9 +2372,9 @@ class Lensgroup():
                         if shape_control:
                             self.correct_shape(d_aper=0.1)
 
-                    self.write_lensfile(f'{result_dir}/iter{i}.txt', write_zmx=False)
-                    self.write_lens_json(f'{result_dir}/iter{i}.json')
-                    self.analysis(f'{result_dir}/iter{i}')
+                    # self.write_lensfile(f'{result_dir}/iter{i}.txt', write_zmx=False)
+                    # self.write_lens_json(f'{result_dir}/iter{i}.json')
+                    self.analysis(f'{result_dir}/iter{i}', draw_layout=True)
 
 
             # =========================================
@@ -2633,6 +2633,9 @@ class Lensgroup():
                 mat2_name = mat2_name[3:].replace('_', ',')
             surf_dict['mat1'] = mat1_name
             surf_dict['mat2'] = mat2_name
+            
+            # avoid conversion into float32
+            surf_dict['r'] = float(surf_dict['r'])
             
             data['surfaces'].append(surf_dict)
 

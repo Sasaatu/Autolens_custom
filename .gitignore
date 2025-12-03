@@ -208,3 +208,6 @@ __marimo__/
 
 # igonore Result folder
 results/
+__pycache__/
+deeplens/__pycache__/
+
