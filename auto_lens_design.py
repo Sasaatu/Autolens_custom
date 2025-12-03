@@ -143,8 +143,8 @@ def default_inputs():
     args['is_sphere'] = True
     args['is_conic'] = True
     args['is_asphere'] = True
-    args['WAVES'] = [675]
-    args['GLASS'] = [[1.5346, 56.10], [1.5346, 56.10]]
+    args['WAVES'] = [520]
+    args['GLASS'] = ['n-bk7'] * 2
     
     return args
 
