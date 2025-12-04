@@ -11,7 +11,7 @@ if __name__ == '__main__':
     epd = 3.0
     epd_start = 2.0
     image_height = 8.0
-    image_height_start = 4.0
+    image_height_start = 2.0
     fov = 37.0
     total_distance = 5.0
     num_lens = 2
