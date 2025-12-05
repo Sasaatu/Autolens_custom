@@ -19,9 +19,11 @@ def curriculum_learning(lens, args):
     lrs = [float(lr) for lr in args['lrs']]
 
     curriculum_steps = args['curriculum_steps']
-    fnum_target = args['FNUM'] * 0.95
+    fnum_target = args['FNUM']
+    fnum_end = fnum_target * 0.95
     fnum_start = args['FNUM_START']
-    diag_target = args['DIAG'] * 1.05
+    diag_target = args['DIAG']
+    diag_end = diag_target * 1.05
     diag_start = args['DIAG_START']
     result_dir = args['result_dir']
     iter = args['iter']
@@ -29,18 +31,16 @@ def curriculum_learning(lens, args):
     iter_last = args['iter_last']
     iter_test_last = args['iter_test_last']
     
-    for step in range(args['curriculum_steps']+1):
+    for step in range(curriculum_steps+1):
         
         # ==> Design target for this step
         args['step'] = step
-        diag1 = diag_start + (diag_target - diag_start) * np.sin(step / curriculum_steps * np.pi/2)
-        fnum1 = fnum_start + (fnum_target - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
+        diag1 = diag_start + (diag_end - diag_start) * np.sin(step / curriculum_steps * np.pi/2)
+        fnum1 = fnum_start + (fnum_end - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
         lens = change_lens(lens, diag1, fnum1)
 
-        lens.analysis(save_name=f'{result_dir}/step{step}_starting_point', zmx_format=True)
-        # lens.write_lensfile(f'{result_dir}/step{step}_starting_point.txt', write_zmx=True)
-        lens.write_lens_json(f'{result_dir}/step{step}_starting_point.json')
         logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
+        lens.analysis(save_name=f'{result_dir}/step{step}_starting_point', draw_layout=True)
         
         # ==> Lens design using RMS errors
         lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, importance_sampling=False, result_dir=result_dir)
@@ -50,7 +50,7 @@ def curriculum_learning(lens, args):
     logging.info('==> Training finish.')
 
     # ==> Final lens
-    lens = change_lens(lens, args['DIAG'], args['FNUM'])
+    lens = change_lens(lens, diag_target, fnum_target)
     
 
 def design_lens(args):
@@ -82,11 +82,9 @@ def design_lens(args):
     else:
         lens = deeplens.Lensgroup(filename=args['filename'])
         lens.correct_shape()
-    
+        
+    # set target performance
     lens.set_target_fov_fnum(hfov=HFOV, fnum=FNUM, imgh=DIAG)
-    # logging.info(f'==> Design target: FOV {round(HFOV*2*57.3, 2)}, DIAG {DIAG}mm, F/{FNUM}, FOCLEN {round(DIAG/2/math.tan(HFOV), 2)}mm.')
-    # lens.analysis(save_name=f'{result_dir}/lens_starting_point')
-    
     # refine lens
     curriculum_learning(lens, args)
 

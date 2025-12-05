@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # arrange design configuration
     args = config(args)
     
-    # create lens
+    # design lens system
     lens = design_lens(args)
 
     logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')

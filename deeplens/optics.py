@@ -2371,11 +2371,7 @@ class Lensgroup():
                     if i > 0:
                         if shape_control:
                             self.correct_shape(d_aper=0.1)
-
-                    # self.write_lensfile(f'{result_dir}/iter{i}.txt', write_zmx=False)
-                    # self.write_lens_json(f'{result_dir}/iter{i}.json')
                     self.analysis(f'{result_dir}/iter{i}', draw_layout=True)
-
 
             # =========================================
             # Compute centriod and sample new rays

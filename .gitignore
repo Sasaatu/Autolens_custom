@@ -210,5 +210,4 @@ __marimo__/
 results/
 __pycache__/
 deeplens/__pycache__/
-test.py
 

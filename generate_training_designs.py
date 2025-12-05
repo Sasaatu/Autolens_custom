@@ -82,7 +82,6 @@ if __name__ == '__main__':
                     args['FNUM_START'] = fnum_start
                     args['DIAG_START'] = diag_start
                     args['rff'] = rff
-                    
                     # arrange design configuration
                     args = config(args)
                     
