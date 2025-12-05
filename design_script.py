@@ -8,19 +8,19 @@ if __name__ == '__main__':
     args = default_inputs()
     
     # custom parmeters
-    epd = 3.0
-    epd_start = 2.0
+    fov = 70.0
+    epd = 1.5
+    epd_start = 1.0
     image_height = 8.0
-    image_height_start = 2.0
-    fov = 37.0
+    image_height_start = 4.0
     total_distance = 5.0
     num_lens = 2
     Glasses = [[1.5346, 56.10]]*num_lens
     Waves = [675]
-    iter = 100
-    iter_test = 10
-    iter_last = 100
-    iter_test_last = 10
+    iter = 500
+    iter_test = 50
+    iter_last = 200
+    iter_test_last = 50
     
     # update inputs
     hfov_rad = math.radians(fov) / 2
