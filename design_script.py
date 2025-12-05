@@ -2,7 +2,7 @@
 """
 import math
 import logging
-from auto_lens_design import default_inputs, define_lens, config, curriculum_learning
+from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     args = default_inputs()
@@ -46,13 +46,7 @@ if __name__ == '__main__':
     args = config(args)
     
     # create lens
-    lens = define_lens(args)
-    # refine lens
-    curriculum_learning(lens, args)
-
-    # analyze final result
-    lens.prune(outer=0.2)
-    lens.post_computation()
+    lens = design_lens(args)
 
     logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
     result_dir = args['result_dir']

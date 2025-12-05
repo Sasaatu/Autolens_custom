@@ -53,7 +53,7 @@ def curriculum_learning(lens, args):
     lens = change_lens(lens, args['DIAG'], args['FNUM'])
     
 
-def define_lens(args):
+def design_lens(args):
     """ Create lens instance
     """
     HFOV = args['HFOV']
@@ -84,8 +84,15 @@ def define_lens(args):
         lens.correct_shape()
     
     lens.set_target_fov_fnum(hfov=HFOV, fnum=FNUM, imgh=DIAG)
-    logging.info(f'==> Design target: FOV {round(HFOV*2*57.3, 2)}, DIAG {DIAG}mm, F/{FNUM}, FOCLEN {round(DIAG/2/math.tan(HFOV), 2)}mm.')
-    lens.analysis(save_name=f'{result_dir}/lens_starting_point')
+    # logging.info(f'==> Design target: FOV {round(HFOV*2*57.3, 2)}, DIAG {DIAG}mm, F/{FNUM}, FOCLEN {round(DIAG/2/math.tan(HFOV), 2)}mm.')
+    # lens.analysis(save_name=f'{result_dir}/lens_starting_point')
+    
+    # refine lens
+    curriculum_learning(lens, args)
+
+    # analyze final result
+    lens.prune(outer=0.2)
+    lens.post_computation()
     
     return lens
 
