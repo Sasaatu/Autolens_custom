@@ -14,7 +14,7 @@ if __name__ == '__main__':
     image_height = 8.0
     image_height_start = 4.0
     total_distance = 5.0
-    num_lens = 2
+    num_lens = 3
     Glasses = [[1.5346, 56.10]]*num_lens
     Waves = [675]
     iter = 500
