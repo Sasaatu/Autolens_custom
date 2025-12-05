@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import logging
-from auto_lens_design import default_inputs, config, design_lens
+from auto_lens_design import default_inputs, config, design_lens, evaluate_spotsize
 
 if __name__ == '__main__':
     fov = 70.0
@@ -51,7 +51,7 @@ if __name__ == '__main__':
             
             lens = design_lens(args)
             # evaluate spot size
-            rms_diag[j] = lens.evaluate_spot_size()
+            rms_diag[j] = evaluate_spotsize(lens)
             # distruct instance
             del lens
             

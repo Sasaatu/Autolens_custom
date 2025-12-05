@@ -4,110 +4,15 @@ import string
 import argparse
 import yaml
 import os
-import math
 import logging
 from datetime import datetime
+import math
+import numpy as np
 import torch
 import deeplens
 from deeplens.utils import *
 from deeplens.optics import create_lens
-
-
-def curriculum_learning(lens, args):
-    """ Curriculum learning for lens design.
-    """
-    lrs = [float(lr) for lr in args['lrs']]
-
-    curriculum_steps = args['curriculum_steps']
-    fnum_target = args['FNUM']
-    fnum_end = fnum_target * 0.95
-    fnum_start = args['FNUM_START']
-    diag_target = args['DIAG']
-    diag_end = diag_target * 1.05
-    diag_start = args['DIAG_START']
-    result_dir = args['result_dir']
-    iter = args['iter']
-    iter_test = args['iter_test']
-    iter_last = args['iter_last']
-    iter_test_last = args['iter_test_last']
-    
-    for step in range(curriculum_steps+1):
-        
-        # ==> Design target for this step
-        args['step'] = step
-        diag1 = diag_start + (diag_end - diag_start) * np.sin(step / curriculum_steps * np.pi/2)
-        fnum1 = fnum_start + (fnum_end - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
-        lens = change_lens(lens, diag1, fnum1)
-
-        logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
-        lens.analysis(save_name=f'{result_dir}/step{step}_starting_point', draw_layout=True)
-        
-        # ==> Lens design using RMS errors
-        lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, importance_sampling=False, result_dir=result_dir)
-
-    # ==> Refine lens at the last step
-    lens.refine(iterations=iter_last, test_per_iter=iter_test_last, centroid=True, importance_sampling=True, result_dir=result_dir)
-    logging.info('==> Training finish.')
-
-    # ==> Final lens
-    lens = change_lens(lens, diag_target, fnum_target)
-    
-
-def design_lens(args):
-    """ Create lens instance
-    """
-    HFOV = args['HFOV']
-    FNUM = args['FNUM']
-    DIAG = args['DIAG']
-    result_dir = args['result_dir']
-    device = args['device']
-
-    # =====> 1. Load or create lens
-    if args['brute_force']:
-        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=HFOV, imgh=DIAG, fnum=FNUM, surfnum=args['element'], glass=args['GLASS'], dir=result_dir)
-        lens_name = f'./{result_dir}/starting_point_hfov{HFOV}_imgh{DIAG}_fnum{FNUM}.txt'
-        lens = deeplens.Lensgroup(filename=lens_name, device=device)
-        lens.wave = args['WAVES']
-        lens.is_sphere = args['is_sphere']
-        lens.is_conic = args['is_conic']
-        lens.is_asphere = args['is_asphere']
-        for i in lens.find_diff_surf():
-            if lens.is_sphere:
-                lens.surfaces[i].init_c()
-            if lens.is_conic:
-                lens.surfaces[i].init_k()
-            if lens.is_asphere:
-                lens.surfaces[i].init_ai(args['ai_degree'])
-            lens.surfaces[i].init_d()
-    else:
-        lens = deeplens.Lensgroup(filename=args['filename'])
-        lens.correct_shape()
-        
-    # set target performance
-    lens.set_target_fov_fnum(hfov=HFOV, fnum=FNUM, imgh=DIAG)
-    # refine lens
-    curriculum_learning(lens, args)
-
-    # analyze final result
-    lens.prune(outer=0.2)
-    lens.post_computation()
-    
-    return lens
-
-
-def change_lens(lens, diag, fnum):
-    """ Change lens for each curriculum step.
-    """
-    # sensor
-    lens.r_last = diag / 2
-    lens.hfov = np.arctan(lens.r_last / lens.foclen)
-
-    # aperture
-    lens.fnum = fnum
-    aper_r = lens.foclen / lens.fnum / 2
-    lens.surfaces[lens.aper_idx].r = aper_r
-    
-    return lens
+from deeplens.basics import DEPTH
 
 
 def default_inputs():
@@ -188,3 +93,125 @@ def config(args):
     logging.info(f'Using {num_gpus} GPUs')
 
     return args
+
+
+def design_lens(args):
+    """ Create lens instance
+    """
+    HFOV = args['HFOV']
+    FNUM = args['FNUM']
+    DIAG = args['DIAG']
+    result_dir = args['result_dir']
+    device = args['device']
+
+    # =====> 1. Load or create lens
+    if args['brute_force']:
+        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=HFOV, imgh=DIAG, fnum=FNUM, surfnum=args['element'], glass=args['GLASS'], dir=result_dir)
+        lens_name = f'./{result_dir}/starting_point_hfov{HFOV}_imgh{DIAG}_fnum{FNUM}.txt'
+        lens = deeplens.Lensgroup(filename=lens_name, device=device)
+        lens.wave = args['WAVES']
+        lens.is_sphere = args['is_sphere']
+        lens.is_conic = args['is_conic']
+        lens.is_asphere = args['is_asphere']
+        for i in lens.find_diff_surf():
+            if lens.is_sphere:
+                lens.surfaces[i].init_c()
+            if lens.is_conic:
+                lens.surfaces[i].init_k()
+            if lens.is_asphere:
+                lens.surfaces[i].init_ai(args['ai_degree'])
+            lens.surfaces[i].init_d()
+    else:
+        lens = deeplens.Lensgroup(filename=args['filename'])
+        lens.correct_shape()
+        
+    # set target performance
+    lens.set_target_fov_fnum(hfov=HFOV, fnum=FNUM, imgh=DIAG)
+    # refine lens
+    curriculum_learning(lens, args)
+
+    # analyze final result
+    lens.prune(outer=0.2)
+    lens.post_computation()
+    
+    return lens
+
+
+def change_lens(lens, diag, fnum):
+    """ Change lens for each curriculum step.
+    """
+    # sensor
+    lens.r_last = diag / 2
+    lens.hfov = np.arctan(lens.r_last / lens.foclen)
+
+    # aperture
+    lens.fnum = fnum
+    aper_r = lens.foclen / lens.fnum / 2
+    lens.surfaces[lens.aper_idx].r = aper_r
+    
+    return lens
+
+
+def curriculum_learning(lens, args):
+    """ Curriculum learning for lens design.
+    """
+    lrs = [float(lr) for lr in args['lrs']]
+
+    curriculum_steps = args['curriculum_steps']
+    fnum_target = args['FNUM']
+    fnum_end = fnum_target * 0.95
+    fnum_start = args['FNUM_START']
+    diag_target = args['DIAG']
+    diag_end = diag_target * 1.05
+    diag_start = args['DIAG_START']
+    result_dir = args['result_dir']
+    iter = args['iter']
+    iter_test = args['iter_test']
+    iter_last = args['iter_last']
+    iter_test_last = args['iter_test_last']
+    
+    for step in range(curriculum_steps+1):
+        
+        # ==> Design target for this step
+        args['step'] = step
+        diag1 = diag_start + (diag_end - diag_start) * np.sin(step / curriculum_steps * np.pi/2)
+        fnum1 = fnum_start + (fnum_end - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
+        lens = change_lens(lens, diag1, fnum1)
+
+        logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
+        lens.analysis(save_name=f'{result_dir}/step{step}_starting_point', draw_layout=True)
+        
+        # ==> Lens design using RMS errors
+        lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, importance_sampling=False, result_dir=result_dir)
+
+    # ==> Refine lens at the last step
+    lens.refine(iterations=iter_last, test_per_iter=iter_test_last, centroid=True, importance_sampling=True, result_dir=result_dir)
+    logging.info('==> Training finish.')
+
+    # ==> Final lens
+    lens = change_lens(lens, diag_target, fnum_target)
+
+
+def evaluate_spotsize(lens, M=5, spp=128):
+    """ Evaluate spot size of designed lens.
+    """
+    # evaluate spot size
+    mag = 1 / lens.calc_scale_pinhole(DEPTH)
+    obj_r = lens.sensor_size[0]/2/mag
+    wave = lens.wave[0]
+    ray = lens.sample_point_source(M=M,  spp=spp,  depth=DEPTH,  R=obj_r,  pupil=True, wavelength=wave)
+    ray, _, _ = lens.trace(ray)
+    xy = ray.project_to(lens.d_sensor)
+    
+    # plot spot diagram
+    rms_array = np.zeros(M*M)
+    # iterate over field points
+    for m in range(M):
+        for n in range(M):
+            xy_s = xy[:, m, n].detach().cpu().numpy().astype(float)
+            xy_cnt = np.mean(xy_s, axis=0)
+            dists = np.linalg.norm(xy_s - xy_cnt, axis=1)
+            rms_array[M*m+n] = np.sqrt(np.mean(dists**2))
+    rms_value = float(np.mean(rms_array))
+    
+    return rms_value

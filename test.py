@@ -6,8 +6,8 @@ from deeplens.basics import DEPTH
 from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
-    M = 9
-    spp = 64
+    M = 5   # number of field points per axis
+    spp = 64    # number of rays
     
     args = default_inputs()
     # custom parmeters
@@ -47,8 +47,8 @@ if __name__ == '__main__':
         for n in range(M):
             xy_s = xy[:, m, n].detach().cpu().numpy().astype(float)
             xy_cnt = np.mean(xy_s, axis=0)
-            dist = np.linalg.norm(xy_s - xy_cnt, axis=1)
-            rms_array[(M-1)*m+n] = np.sqrt(np.mean(dist**2))
+            dists = np.linalg.norm(xy_s - xy_cnt, axis=1)
+            rms_array[M*m+n] = np.sqrt(np.mean(dists**2))
             
             plt.scatter(xy_s[:, 0], xy_s[:, 1], s=1)
     rms_value = float(np.mean(rms_array))
@@ -59,8 +59,3 @@ if __name__ == '__main__':
     plt.ylabel('Y [mm]')
     plt.grid()
     plt.show()
-    
-    
-    
-    bjbjb
-    
