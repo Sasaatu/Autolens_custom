@@ -1,6 +1,6 @@
 """ Automated lens design with curriculum learning, using RMS errors as loss function.
 """
-import math
+import numpy as np
 from matplotlib import pyplot as plt
 from deeplens.basics import DEPTH
 from auto_lens_design import default_inputs, config, design_lens
@@ -41,9 +41,18 @@ if __name__ == '__main__':
     
     # plot spot diagram
     plt.figure()
+    rms_array = np.zeros(M*M)
+    # iterate over field points
     for m in range(M):
-        xy_s = xy[:, m, m].detach().cpu().numpy().astype(float)
-        plt.scatter(xy_s[:, 0], xy_s[:, 1], s=1)
+        for n in range(M):
+            xy_s = xy[:, m, n].detach().cpu().numpy().astype(float)
+            xy_cnt = np.mean(xy_s, axis=0)
+            dist = np.linalg.norm(xy_s - xy_cnt, axis=1)
+            rms_array[(M-1)*m+n] = np.sqrt(np.mean(dist**2))
+            
+            plt.scatter(xy_s[:, 0], xy_s[:, 1], s=1)
+    rms_value = float(np.mean(rms_array))
+    print(f'RMS spot size: {rms_value*1e3:.2f} um')
     plt.axis('equal')
     plt.title('Spot diagram')
     plt.xlabel('X [mm]')
