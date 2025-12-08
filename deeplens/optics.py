@@ -2075,12 +2075,13 @@ class Lensgroup():
 
             Reference: green ray center. In ZEMAX, chief ray is used as reference, so our result is slightly different from ZEMAX.
         """
-        H = 31
+        H = 9
+        spp = 256
         scale = self.calc_scale_ray(depth)
 
         # ==> Use green light for reference
         if ref:
-            ray = self.sample_point_source(M=H, spp=GEO_SPP, depth=depth, R=self.sensor_size[0]/2*scale, pupil=True, wavelength=DEFAULT_WAVE)
+            ray = self.sample_point_source(M=H, spp=spp, depth=depth, R=self.sensor_size[0]/2*scale, pupil=True, wavelength=DEFAULT_WAVE)
             ray, _, _ = self.trace(ray, ignore_aper=False)
             p_green = ray.project_to(self.d_sensor)
             p_center_ref = (p_green * ray.ra.unsqueeze(-1)).sum(0) / ray.ra.sum(0).add(0.0001).unsqueeze(-1)
@@ -2090,7 +2091,7 @@ class Lensgroup():
         rms_on_axis = []
         rms_off_axis = []
         for wavelength in self.wave:
-            ray = self.sample_point_source(M=H, spp=GEO_SPP, depth=depth, R=self.sensor_size[0]/2*scale, pupil=True, wavelength=wavelength)
+            ray = self.sample_point_source(M=H, spp=spp, depth=depth, R=self.sensor_size[0]/2*scale, pupil=True, wavelength=wavelength)
             ray, _, _ = self.trace(ray, ignore_aper=False)
             o2 = ray.project_to(self.d_sensor)
             o2_center = (o2*ray.ra.unsqueeze(-1)).sum(0)/ray.ra.sum(0).add(0.0001).unsqueeze(-1)
@@ -2119,14 +2120,15 @@ class Lensgroup():
             Can also revise this function to plot PSF.
         """
         # H, W = self.sensor_res
-        H = 31
+        H = 9
+        spp = 256
 
         # ==> PSF and RMS by patch
         scale = - depth * np.tan(self.hfov) / self.r_last
 
         rms = 0
         for wavelength in self.wave:
-            ray = self.sample_point_source(M=H, spp=GEO_SPP, depth=depth, R=self.sensor_size[0]/2*scale, pupil=True, wavelength=wavelength)
+            ray = self.sample_point_source(M=H, spp=spp, depth=depth, R=self.sensor_size[0]/2*scale, pupil=True, wavelength=wavelength)
             ray, _, _ = self.trace(ray, ignore_aper=False)
             o2 = ray.project_to(self.d_sensor)
             o2_center = (o2*ray.ra.unsqueeze(-1)).sum(0)/ray.ra.sum(0).add(0.0001).unsqueeze(-1)    
@@ -2345,7 +2347,7 @@ class Lensgroup():
             decay (float, optional): Learning rate alpha decay. Defaults to 0.1.
         """
         # Preparation
-        M = 31
+        M = 9
         spp = 256
         wave_mean = float(np.mean(self.wave))
         sample_rays_per_iter = test_per_iter if not centroid else 5 * test_per_iter
@@ -2380,7 +2382,7 @@ class Lensgroup():
                 # => Use center spot of green rays
                 with torch.no_grad():
                     mag = 1 / self.calc_scale_pinhole(depth)
-                    ray = self.sample_point_source(M=M, R=self.sensor_size[0]/2/mag, depth=depth, spp=spp*4, pupil=True, wavelength=wave_mean, importance_sampling=importance_sampling)
+                    ray = self.sample_point_source(M=M, R=self.sensor_size[0]/2/mag, depth=depth, spp=spp, pupil=True, wavelength=wave_mean, importance_sampling=importance_sampling)
                     xy_center_ref = - ray.o[0, :, :, :2] * mag
 
                     ray, _, _ = self.trace(ray)
@@ -2435,6 +2437,31 @@ class Lensgroup():
         # Finish training
         pbar.close()
         self.activate_surf(activate=False, diff_surf_range=diff_surf_range)
+        
+        
+    def evaluate_spotsize(self, M=9, spp=256):
+        """ Evaluate spot size of designed lens.
+        """
+        # evaluate spot size
+        mag = 1 / self.calc_scale_pinhole(DEPTH)
+        obj_r = self.sensor_size[0]/2/mag
+        wave = self.wave[0]
+        ray = self.sample_point_source(M=M,  spp=spp,  depth=DEPTH,  R=obj_r,  pupil=True, wavelength=wave)
+        ray, _, _ = self.trace(ray)
+        xy = ray.project_to(self.d_sensor)
+        
+        # plot spot diagram
+        rms_array = np.zeros(M*M)
+        # iterate over field points
+        for m in range(M):
+            for n in range(M):
+                xy_s = xy[:, m, n].detach().cpu().numpy().astype(float)
+                xy_cnt = np.mean(xy_s, axis=0)
+                dists = np.linalg.norm(xy_s - xy_cnt, axis=1)
+                rms_array[M*m+n] = np.sqrt(np.mean(dists**2))
+        rms_value = float(np.mean(rms_array))
+        
+        return rms_value
 
 
     # ====================================================================================

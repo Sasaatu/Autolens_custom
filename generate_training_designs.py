@@ -51,7 +51,7 @@ if __name__ == '__main__':
             
             lens = design_lens(args)
             # evaluate spot size
-            rms_diag[j] = evaluate_spotsize(lens)
+            rms_diag[j] = lens.evaluate_spotsize()
             # distruct instance
             del lens
             
