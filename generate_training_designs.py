@@ -1,12 +1,13 @@
 import math
 import numpy as np
 import logging
-from auto_lens_design import default_inputs, config, design_lens, evaluate_spotsize
+from deeplens.basics import Glass_Table
+from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     fov = 70.0
     num_lens = 2
-    num_combi = 20
+    num_combo = 100
     res_grid = 3
 
     # define configuration grid
@@ -27,38 +28,57 @@ if __name__ == '__main__':
     
     ################################################################
     # Define lens materials
-    rms_array = np.zeros(num_combi)
-    # test all glass combinations
-    for i in range(num_combi):
-        args['GlASSES'] = mediums_list[i]
-        
-        # design lens at diagonal points on the grid
-        rms_diag = np.zeros(res_grid)
-        for j in range(res_grid):
-            # set config
-            epd = epd_range[j]
-            imgh = imgh_range[j]
-            dist = dist_range[j]
-            fnum = imgh/(2*epd*math.tan(hfov_rad))
-            fnum_start = fnum*1.5
-            diag_start = imgh/2.0
-            rff = dist / imgh
-            args['FNUM'] = fnum
-            args['DIAG'] = imgh
-            args['FNUM_START'] = fnum_start
-            args['DIAG_START'] = diag_start
-            args['rff'] = rff
+    if num_lens >= 4:
+        # generate material combinations
+        # duplication between combos: NO, materials: YES
+        combinations = set()
+        while len(combinations) < num_combo:
+            combo = tuple(
+                np.random.choice(Glass_Table, num_lens, replace=True)
+            )
+            combinations.add(combo)
+        # convert to list
+        combinations = list(combinations)
+
+        rms_array = np.zeros(num_combo)
+        # test all glass combinations
+        for i in range(num_combo):
+            args['GLASSES'] = combinations[i]
             
-            lens = design_lens(args)
-            # evaluate spot size
-            rms_diag[j] = lens.evaluate_spotsize()
-            # distruct instance
-            del lens
-            
-        rms_array[i] = np.mean(rms_diag)
-    # select best material combination wheere spot size is minimum
-    idx = np.argmin(rms_array)
-    args['GLASSES'] = mediums_list[idx]
+            # design lens at diagonal points on the grid
+            rms_diag = np.zeros(res_grid)
+            for j in range(res_grid):
+                # set config
+                epd = epd_range[j]
+                imgh = imgh_range[j]
+                dist = dist_range[j]
+                fnum = imgh/(2*epd*math.tan(hfov_rad))
+                fnum_start = fnum*1.5
+                diag_start = imgh/2.0
+                rff = dist / imgh
+                args['FNUM'] = fnum
+                args['DIAG'] = imgh
+                args['FNUM_START'] = fnum_start
+                args['DIAG_START'] = diag_start
+                args['rff'] = rff
+                
+                lens = design_lens(args)
+                # evaluate spot size
+                rms_diag[j] = lens.evaluate_spotsize()
+                # distruct instance
+                del lens
+                
+            rms_array[i] = np.mean(rms_diag)
+        # select best material combination wheere spot size is minimum
+        idx = np.argmin(rms_array)
+        args['GLASSES'] = combinations[idx]
+    else:
+        if num_lens == 1:
+            args['GLASSES'] = ['n-bk7']
+        elif num_lens == 2:
+            args['GLASSES'] = ['n-lak22', 'n-sf10']
+        elif num_lens == 3:
+            args['GLASSES'] = ['SK16', 'F2', 'SK16']  
     
     ################################################################
     # Generate designs
