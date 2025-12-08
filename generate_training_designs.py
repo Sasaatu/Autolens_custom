@@ -6,7 +6,7 @@ from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     fov = 70.0
-    num_lens = 2
+    num_lens = 4
     num_combo = 100
     res_grid = 3
 
@@ -34,16 +34,16 @@ if __name__ == '__main__':
         combinations = set()
         while len(combinations) < num_combo:
             combo = tuple(
-                np.random.choice(Glass_Table, num_lens, replace=True)
+                np.random.choice(Glass_Table, num_lens, replace=True).tolist()
             )
             combinations.add(combo)
-        # convert to list
+        # convert set to list
         combinations = list(combinations)
 
         rms_array = np.zeros(num_combo)
         # test all glass combinations
         for i in range(num_combo):
-            args['GLASSES'] = combinations[i]
+            args['GLASSES'] = list(combinations[i])
             
             # design lens at diagonal points on the grid
             rms_diag = np.zeros(res_grid)
@@ -61,6 +61,7 @@ if __name__ == '__main__':
                 args['FNUM_START'] = fnum_start
                 args['DIAG_START'] = diag_start
                 args['rff'] = rff
+                args = config(args)
                 
                 lens = design_lens(args)
                 # evaluate spot size
