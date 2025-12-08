@@ -12,6 +12,7 @@ EPSILON = 1e-6  # replace 0 with EPSILON in some cases
 GEO_SPP = 512   # spp for geometric optics calculation
 NEWTON_STEP_BOUND = 1   # Maximum step length in one Newton iteration
 
+# List of [nd, Vd] of all materials
 MATERIAL_TABLE = { 
     # [nD, Abbe number]
     "vacuum":       [1.,       math.inf],
@@ -53,7 +54,6 @@ MATERIAL_TABLE = {
     "sk1":          [1.61020,  56.504],
     "sk16":         [1.62040,  60.306],
     "sk1":          [1.61030,  56.712],
-    "sk16":         [1.62040,  60.324],
     "ssk4":         [1.61770,  55.116],
 
     # https://www.pgo-online.com/intl/B270.html
@@ -62,6 +62,9 @@ MATERIAL_TABLE = {
     # https://refractiveindex.info, nd at 589.3 [nm]
     "s-nph1":       [1.8078,   22.76], 
     "d-k59":        [1.5175,   63.50],
+    "sf2":          [1.6477,   33.85],
+    "n-lak22":      [1.6511,   55.89],
+    "n-sf10":       [1.7283,   28.53],
     
     "flint":        [1.6200,   36.37],
     "pmma":         [1.491756, 58.00],
@@ -69,7 +72,7 @@ MATERIAL_TABLE = {
     "polystyr":     [1.59048,  30.87]
 }
 
-
+# Dispsersion classification: Sellemeier/Schott/Cauchy
 SELLMEIER_TABLE = {
     "vacuum":       [0., 0., 0., 0., 0., 0.],
     "air":          [0., 0., 0., 0., 0., 0.],
@@ -96,33 +99,40 @@ SELLMEIER_TABLE = {
     # https://www.pgo-online.com/intl/B270.html
     
     # https://refractiveindex.info, nd at 589.3 [nm]
-    "d-k59":        [1.1209, 6.5791e-3, 1.5269e-1, 2.3572e-2, 1.0750, 1.0631e2]
+    "d-k59":        [1.1209, 6.5791e-3, 1.5269e-1, 2.3572e-2, 1.0750, 1.0631e2],
+    "n-lak22":      [1.1423, 5.8578e-3, 5.3514e-1, 1.9855e-2, 1.0409, 1.8340e2],
+    "n-sf10":       [1.6215, 1.2224e-2, 2.5629e-1, 5.9574e-2, 1.6445, 1.4747e2]
 }
-
-
 SCHOTT_TABLE = {
     "coc":          [2.28449,  1.02952e-2, 3.73494e-2, -9.28410e-3, 1.73290e-3, -1.15203e-4],
     "pmma":         [2.18646, -2.44753e-4, 1.41558e-2, -4.43298e-4, 7.76643e-5, -2.99364e-6],
-    "ps":           [2.44598,  2.21429e-5, 2.72989e-2,  3.01211e-4, 8.88934e-5, -1.75708e-6],
     'polystyr':     [2.44598,  2.21429e-5, 2.72989e-2,  3.01211e-4, 8.88934e-5, -1.75708e-6],
-    "pc":           [2.42839, -3.86117e-5, 2.87574e-2, -1.97897e-4, 1.48359e-4,  1.38652e-6],
     'polycarb':     [2.42839, -3.86117e-5, 2.87574e-2, -1.97897e-4, 1.48359e-4,  1.38652e-6],
     "okp4ht":       [2.55219,  6.51282e-5, 3.57452e-2,  8.49831e-4, 8.47777e-5,  1.58990e-5],
-    "okp4":         [2.49230, -1.46713e-3, 3.04056e-2, -2.31960e-4, 3.62928e-4, -1.89103e-5]
+    "okp4":         [2.49230, -1.46713e-3, 3.04056e-2, -2.31960e-4, 3.62928e-4, -1.89103e-5],
+    "sf2":          [2.61248, -7.29484e-3, 3.84493e-2,  2.45988e-3, 4.24748e-4, -1.66887e-5]
 }
-
-
 GLASS_NAME = {
     "coc":          'COC',
     "pmma":         'PMMA',
-    "ps":           'POLYSTYR',
     'polystyr':     'POLYSTYR',
-    "pc":           'POLYCARB',
     "polycarb":     'POLYCARB',
     "okp4":         'OKP4',
-    "okp4ht":       'OKP4HT'
+    "okp4ht":       'OKP4HT',
+    "sf2":          'SF2'
 }
 
+# Composition classification: Glass/Plastic
+Glass_Table = [
+    "f2", "f5", "bk1", "bk7", "bk10",
+    "kzfs1", "laf20", "lafn7", "n-baf10", "n-bk7",
+    "n-lak34", "n-pk51", "n-pk52", "n-balf4", "n-ssk2",
+    "n-sf57", "sf11", "d-k59", "sk1", "sk16",
+    "ssk4", "b270", "s-nph1", "sf2", "n-lak22",
+    "n-sf10", "flint"]
+Plastic_Table = [
+    "coc", "pmma", "polycarb", "polystyr", "okp4",
+    "okp4ht", "apl5014cl"]
 
 
 # ----------------------------------------------------------------------------------------
