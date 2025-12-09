@@ -20,15 +20,16 @@ def default_inputs():
     """
     args = dict()
     # experiment options
+    args['results_root'] = './results'
     args['DEBUG'] = True
     args['brute_force'] = True
     args['seed'] = 1
 
     # Design spec
-    args['HFOV'] = 0.39
-    args['FNUM'] = 4.0
-    args['DIAG'] = 3.0
-    args['element'] = 2
+    args['HFOV'] = 0.39     # half diagonal FoV in radian, foclen = imgh / 2 / np.tan(hfov)
+    args['FNUM'] = 4.0      # F-number, fnum = foclen/aper_D
+    args['DIAG'] = 3.0      # sensor diagonal length in mm, imgh = diag, hfov = arctan(diag / 2 / foclen)
+    args['element'] = 2     # number of lens
 
     # curriculum steps
     args['curriculum_steps'] = 5
@@ -43,18 +44,24 @@ def default_inputs():
     args['lrs'] = [5e-4, 1e-4, 1e-1, 1e-4]
     args['ai_lr_decay'] = 0.1
 
-    # Random initialization
-    args['ai_degree'] = 6
-    args['flange'] = 1.2
-    args['rff'] = 1.33
-    args['d_aper'] = 0.2
+    # System lengths
+    args['flange'] = 1.2    # distance from last surface to sensor
+    args['rff'] = 1.33      # d_total = imgh * rff # total distance  
+    args['d_aper'] = 0.2    # aperture thickness, d_total = d_opt + d_apt + flange
 
-    # New parameters
+    # Surface geometry types
     args['is_sphere'] = True
     args['is_conic'] = True
     args['is_asphere'] = True
+    args['ai_degree'] = 6   # degree of even asphere
+    
+    # Refractive index parameters
     args['WAVES'] = [520]
     args['GLASS'] = ['n-bk7'] * 2
+    
+    # Ray tracing parameters for curriculum learning
+    args['num_ray'] = 256   # number of rays per field point
+    args['num_source'] = 9  # number of field points per axis
     
     return args
 
@@ -63,6 +70,7 @@ def config(args):
     """ Config file for training.
     """
     # Result dir
+    results_root = args['results_root']
     num_lens = args['element']
     hfov_rad  = args['HFOV']
     fnum = args['FNUM']
@@ -74,7 +82,7 @@ def config(args):
     tot_dist_str = f"{tot_dist:.2f}"
     current_time = datetime.now().strftime("%m%d-%H%M%S")
     exp_name = current_time + '-' + str(num_lens) + 'P' + '_Epd' + epd_str + '_ImgH' + img_h_str + '_TotLen' + tot_dist_str
-    result_dir = f'./results/{exp_name}'
+    result_dir = f'{results_root}/{exp_name}'
     os.makedirs(result_dir, exist_ok=True)
     args['result_dir'] = result_dir
     
@@ -95,7 +103,7 @@ def config(args):
     return args
 
 
-def design_lens(args):
+def design_lens(args, save_inter_design, save_final_design):
     """ Create lens instance
     """
     HFOV = args['HFOV']
@@ -121,6 +129,9 @@ def design_lens(args):
             if lens.is_asphere:
                 lens.surfaces[i].init_ai(args['ai_degree'])
             lens.surfaces[i].init_d()
+        # delete starting design file
+        if not save_final_design:
+            os.remove(lens_name)
     else:
         lens = deeplens.Lensgroup(filename=args['filename'])
         lens.correct_shape()
@@ -128,7 +139,7 @@ def design_lens(args):
     # set target performance
     lens.set_target_fov_fnum(hfov=HFOV, fnum=FNUM, imgh=DIAG)
     # refine lens
-    curriculum_learning(lens, args)
+    curriculum_learning(lens, args, save_inter_design)
 
     # analyze final result
     lens.prune(outer=0.2)
@@ -152,7 +163,7 @@ def change_lens(lens, diag, fnum):
     return lens
 
 
-def curriculum_learning(lens, args):
+def curriculum_learning(lens, args, save_design):
     """ Curriculum learning for lens design.
     """
     lrs = [float(lr) for lr in args['lrs']]
@@ -169,6 +180,8 @@ def curriculum_learning(lens, args):
     iter_test = args['iter_test']
     iter_last = args['iter_last']
     iter_test_last = args['iter_test_last']
+    num_source = args['num_source']
+    num_ray = args['num_ray']
     
     for step in range(curriculum_steps+1):
         
@@ -179,13 +192,12 @@ def curriculum_learning(lens, args):
         lens = change_lens(lens, diag1, fnum1)
 
         logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
-        lens.analysis(save_name=f'{result_dir}/step{step}_starting_point', draw_layout=True)
         
         # ==> Lens design using RMS errors
-        lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, importance_sampling=False, result_dir=result_dir)
+        lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, num_source=num_source, num_ray=num_ray, importance_sampling=False, result_dir=result_dir, save_design=save_design)
 
     # ==> Refine lens at the last step
-    lens.refine(iterations=iter_last, test_per_iter=iter_test_last, centroid=True, importance_sampling=True, result_dir=result_dir)
+    lens.refine(iterations=iter_last, test_per_iter=iter_test_last, num_source=num_source, num_ray=num_ray, centroid=True, importance_sampling=True, result_dir=result_dir, save_design=save_design)
     logging.info('==> Training finish.')
 
     # ==> Final lens

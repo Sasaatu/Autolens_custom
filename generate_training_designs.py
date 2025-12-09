@@ -1,14 +1,18 @@
+import os
 import math
 import numpy as np
 import logging
+from datetime import datetime
 from deeplens.basics import Glass_Table
 from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     fov = 70.0
+    waves = [520]
     num_lens = 4
-    num_combo = 100
     res_grid = 3
+    num_combo = 100
+    save_final_design = True
 
     # define configuration grid
     epd_range = np.linspace(0.5, 5.0, res_grid)
@@ -20,7 +24,7 @@ if __name__ == '__main__':
     hfov_rad = math.radians(fov) / 2
     args['HFOV'] = hfov_rad
     args['element'] = num_lens
-    args['WAVES'] = [480, 520, 640]
+    args['WAVES'] = waves
     args['ITER'] = 100
     args['ITER_TEST'] = 10
     args['ITER_LAST'] = 100
@@ -28,7 +32,14 @@ if __name__ == '__main__':
     
     ################################################################
     # Define lens materials
-    if num_lens >= 4:
+    if num_lens <= 3:
+        if num_lens == 1:
+            args['GLASSES'] = ['n-bk7']
+        elif num_lens == 2:
+            args['GLASSES'] = ['n-lak22', 'n-sf10']
+        elif num_lens == 3:
+            args['GLASSES'] = ['sk16', 'f2', 'sk16'] 
+    else:
         # generate material combinations
         # duplication between combos: NO, materials: YES
         combinations = set()
@@ -63,7 +74,7 @@ if __name__ == '__main__':
                 args['rff'] = rff
                 args = config(args)
                 
-                lens = design_lens(args)
+                lens = design_lens(args, False, False)
                 # evaluate spot size
                 rms_diag[j] = lens.evaluate_spotsize()
                 # distruct instance
@@ -73,18 +84,19 @@ if __name__ == '__main__':
         # select best material combination wheere spot size is minimum
         idx = np.argmin(rms_array)
         args['GLASSES'] = combinations[idx]
-    else:
-        if num_lens == 1:
-            args['GLASSES'] = ['n-bk7']
-        elif num_lens == 2:
-            args['GLASSES'] = ['n-lak22', 'n-sf10']
-        elif num_lens == 3:
-            args['GLASSES'] = ['SK16', 'F2', 'SK16']  
+     
     
     ################################################################
     # Generate designs
+    # create results directory
+    current_time = datetime.now().strftime("%m%d-%H%M%S")
+    sequence = 'GA'*num_lens
+    num_gen = res_grid ** 3
+    dir_results = f'./results/{current_time}_{sequence}_{num_gen}training_designs'
+    os.makedirs(dir_results, exist_ok=True)
+    args['results_root'] = dir_results
     # create error log file
-    error_log_name = "results/generation_error.txt"
+    error_log_name = dir_results + '/generation_error.txt'
     with open(error_log_name, "w") as f:
         f.write("")
     
@@ -107,14 +119,14 @@ if __name__ == '__main__':
                     args = config(args)
                     
                     # create lens
-                    lens = design_lens(args)
+                    lens = design_lens(args, False, save_final_design)
 
                     # save design in zmx, json and png file
                     logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
-                    result_dir = args['result_dir']
-                    lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
-                    lens.write_lens_json(f'{result_dir}/final_lens.json')
-                    lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
+                    if save_final_design:
+                        result_dir = args['result_dir']
+                        lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
+                        lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
                     
                     # distruct instance
                     del lens

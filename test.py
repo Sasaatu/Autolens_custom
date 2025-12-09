@@ -17,6 +17,8 @@ if __name__ == '__main__':
     iter_test = 1
     iter_last = 1
     iter_test_last = 1
+    save_inter_design = True
+    save_final_design = True
     
     # update inputs
     args['WAVES'] = Waves
@@ -29,7 +31,7 @@ if __name__ == '__main__':
     args = config(args)
     
     # design lens system
-    lens = design_lens(args)
+    lens = design_lens(args, save_inter_design, save_final_design)
 
     # evaluate spot size
     mag = 1 / lens.calc_scale_pinhole(DEPTH)

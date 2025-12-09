@@ -2338,7 +2338,7 @@ class Lensgroup():
         return optimizer, scheduler
 
 
-    def refine(self, lrs=[5e-4, 1e-4, 0.1, 1e-4], decay=0.1, iterations=2000, test_per_iter=100, depth=DEPTH, shape_control=True, centroid=False, importance_sampling=False, result_dir='./results'):
+    def refine(self, lrs=[5e-4, 1e-4, 0.1, 1e-4], decay=0.1, iterations=2000, test_per_iter=100, num_source=9, num_ray=256, depth=DEPTH, shape_control=True, centroid=False, importance_sampling=False, result_dir='./results', save_design=True):
         """ Optimize a given lens by minimizing rms errors.
 
         Args:
@@ -2347,8 +2347,8 @@ class Lensgroup():
             decay (float, optional): Learning rate alpha decay. Defaults to 0.1.
         """
         # Preparation
-        M = 9
-        spp = 256
+        M = num_source
+        spp = num_ray
         wave_mean = float(np.mean(self.wave))
         sample_rays_per_iter = test_per_iter if not centroid else 5 * test_per_iter
         diff_surf_range = self.find_diff_surf()
@@ -2373,7 +2373,8 @@ class Lensgroup():
                     if i > 0:
                         if shape_control:
                             self.correct_shape(d_aper=0.1)
-                    self.analysis(f'{result_dir}/iter{i}', draw_layout=True)
+                    if save_design:
+                        self.analysis(f'{result_dir}/iter{i}', draw_layout=True)
 
             # =========================================
             # Compute centriod and sample new rays

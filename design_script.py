@@ -21,6 +21,8 @@ if __name__ == '__main__':
     iter_test = 50
     iter_last = 200
     iter_test_last = 50
+    save_inter_design = True
+    save_final_design = True
     
     # update inputs
     hfov_rad = math.radians(fov) / 2
@@ -46,7 +48,7 @@ if __name__ == '__main__':
     args = config(args)
     
     # design lens system
-    lens = design_lens(args)
+    lens = design_lens(args, save_inter_design, save_final_design)
 
     logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
     result_dir = args['result_dir']
