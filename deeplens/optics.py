@@ -2906,56 +2906,75 @@ SURF 0
         f.close()
 
 
-def append_csv(self, csv_name):
-    """ Append a design into a csv file
-    """
-    # header
-    header = ['epd','hfov','hfov_all','wave','c','as_c','c_all','d_all','t_all',
-                'nd','v','efl','sequence','stop_idx','independent_as','file_name','RMS']
-    
-    # list design specs
-    sequence = ''   
-    filename = ''
-    hfov_rad = self.hfov
-    hfov_deg = math.degrees(hfov_rad)
-    hfov_deg_all = [0, hfov_deg/2, hfov_deg]
-    imgh = self.sensor_size[1]
-    epd = imgh/(2*self.fnum*math.tan(hfov_rad))
-    efl = self.foclen
-    waves_nm = self.wave
-    cs_nor = []
-    ds_nor = []
-    ts_nor = []
-    for i in range(num_surf):
-        c = float(self.surfaces[i].c)
-        D = float(self.surfaces[i].r)*2
-        t = float(self.surfaces[i+1].d) - float(self.surfaces[i].d)
-        cs_nor.append(c*efl)
-        ds_nor.append(D/efl)
-        ts_nor.append(t/efl)
-    nds = []
-    Vds = []
-    for i in range(num_glass):
-        nd = self.materials[i].n
-        Vd = self.materials[i].V
-        nds.append(nd)
-        Vds.append(Vd)
-    spot_rms = self.evaluate_spotsize(M=9, spp=512)
-    as_c = -1
-    stop_index = 1
-    independent_as = 'FALSE'
-    
-    L = [epd, hfov_deg, json.dumps(hfov_deg_all), json.dumps(waves_nm), json.dumps(cs_nor), as_c,
-         json.dumps(cs_nor), json.dumps(ds_nor), json.dumps(ts_nor), json.dumps(nds), json.dumps(Vds),
-         efl, sequence, stop_index, independent_as, filename, spot_rms]
-    
-    # append list to csv file
-    is_init = not os.path.exists(csv_name)
-    with open(csv_name, "a", newline="") as f:
-        writer = csv.writer(f)
-        if is_init:
-            writer.writerow(header)
-        writer.writerow(L)
+    def append_csv(self, csv_name):
+        """ Append a design into a csv file
+        """
+        deci = 4
+
+        # header
+        header = ['epd','hfov','hfov_all','wave','c','as_c','c_all','d_all','t_all',
+                    'nd','v','efl','sequence','stop_idx','independent_as','file_name','RMS']
+        
+        # list design specs
+        num_surf = len(self.surfaces)-1
+        num_glass = int(num_surf / 2)
+        sequence = 'GA'*num_glass   
+        hfov_rad = self.hfov
+        hfov_deg = math.degrees(hfov_rad)
+        hfov_deg_all = [0, hfov_deg/2, hfov_deg]
+        fnum = float(self.fnum)
+        imgh = float(self.sensor_size[1])
+        epd = imgh/(2*fnum*math.tan(hfov_rad))
+        waves_nm = self.wave
+        efl = float(self.foclen)
+        spot_rms = self.evaluate_spotsize(M=9, spp=512)
+        filename = f'{sequence}_Epd{epd:.2f}_Fov{hfov_deg*2:.2f}_Imgh{imgh:.2f}.ZMX.yml'
+        cs_nor = []
+        ds_nor = []
+        ts_nor = []
+        for i in range(1, num_surf+1):
+            c = float(self.surfaces[i].c)
+            D = float(self.surfaces[i].r)*2
+            if i == num_surf:
+                t = float(self.d_sensor) - float(self.surfaces[i].d)
+            else:
+                t = float(self.surfaces[i+1].d) - float(self.surfaces[i].d)
+            cs_nor.append(c*efl)
+            ds_nor.append(D/efl)
+            ts_nor.append(t/efl)
+        nds = []
+        Vds = []
+        for i in range(num_glass):
+            iglass = 2*(i+1)
+            nd = self.materials[iglass].n
+            Vd = self.materials[iglass].V
+            nds.append(nd)
+            Vds.append(Vd)
+        as_c = -1
+        stop_index = 1
+        independent_as = 'FALSE'
+        
+        # reduce decimal places
+        epd = round(epd, deci)
+        hfov_deg = round(hfov_deg, deci)
+        hfov_deg_all = [round(hf, deci) for hf in hfov_deg_all]
+        efl = round(efl, deci)
+        spot_rms = round(spot_rms, deci)
+        cs_nor = [round(cn, deci) for cn in cs_nor]
+        ds_nor = [round(dn, deci) for dn in ds_nor]
+        ts_nor = [round(tn, deci) for tn in ts_nor]
+            
+        L = [epd, hfov_deg, json.dumps(hfov_deg_all), json.dumps(waves_nm), json.dumps(cs_nor), as_c,
+            json.dumps(cs_nor), json.dumps(ds_nor), json.dumps(ts_nor), json.dumps(nds), json.dumps(Vds),
+            efl, sequence, stop_index, independent_as, filename, spot_rms]
+        
+        # append list to csv file
+        is_init = not os.path.exists(csv_name)
+        with open(csv_name, "a", newline="") as f:
+            writer = csv.writer(f)
+            if is_init:
+                writer.writerow(header)
+            writer.writerow(L)
 
 
 # ====================================================================================

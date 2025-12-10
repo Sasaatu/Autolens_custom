@@ -210,4 +210,5 @@ __marimo__/
 results/
 __pycache__/
 deeplens/__pycache__/
-
+test.png
+script_multiple_designs.py

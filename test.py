@@ -17,8 +17,8 @@ if __name__ == '__main__':
     iter_test = 1
     iter_last = 1
     iter_test_last = 1
-    save_inter_design = True
-    save_final_design = True
+    save_inter_design = False
+    save_final_design = False
     
     # update inputs
     args['WAVES'] = Waves
