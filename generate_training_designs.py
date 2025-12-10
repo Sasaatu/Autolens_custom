@@ -108,6 +108,8 @@ if __name__ == '__main__':
     dir_results = f'./results/{current_time}_{sequence}_{num_gen}training_designs'
     os.makedirs(dir_results, exist_ok=True)
     args['results_root'] = dir_results
+    # csv file name
+    csv_name = dir_results + f'/{current_time}_{sequence}_{num_gen}training_designs.csv'
     # create error log file
     error_log_name = dir_results + '/generation_error.txt'
     with open(error_log_name, "w") as f:
@@ -140,6 +142,7 @@ if __name__ == '__main__':
                         result_dir = args['result_dir']
                         lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
                         lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
+                        lens.append_csv(csv_name)
                     
                     # distruct instance
                     del lens
