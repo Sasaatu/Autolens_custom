@@ -2356,8 +2356,10 @@ class Lensgroup():
         diff_surf_range = self.find_diff_surf()
         optimizer, scheduler = self.get_optimizer(lrs, iterations, decay)
         
+        # make sub directories for step designs
         result_dir = result_dir + '/' + datetime.now().strftime("%m%d-%H%M%S")+ '-DesignLensRMS'
-        os.makedirs(result_dir, exist_ok=True)
+        if save_design:
+            os.makedirs(result_dir, exist_ok=True)
         if not logging.getLogger().hasHandlers():
             set_logger(result_dir)
         logging.info(f'lr:{lrs}, decay:{decay}, iterations:{iterations}, spp:{spp}, M:{M}.')

@@ -9,8 +9,8 @@ from auto_lens_design import default_inputs, config, design_lens
 if __name__ == '__main__':
     # define specifications
     fov = 70.0
-    waves = [520]
-    num_lens = 4
+    waves = [480, 520]
+    num_lens = 3
     res_grid = 3
     num_combo = 100
     iter = 500
