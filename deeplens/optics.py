@@ -4,10 +4,12 @@ import torch
 import glob
 import random
 import json
+import csv
 import cv2 as cv
 import warnings
 import statistics
 from tqdm import tqdm
+import math
 from scipy import stats
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -2903,6 +2905,57 @@ SURF 0
         
         f.close()
 
+
+def append_csv(self, csv_name):
+    """ Append a design into a csv file
+    """
+    # header
+    header = ['epd','hfov','hfov_all','wave','c','as_c','c_all','d_all','t_all',
+                'nd','v','efl','sequence','stop_idx','independent_as','file_name','RMS']
+    
+    # list design specs
+    sequence = ''   
+    filename = ''
+    hfov_rad = self.hfov
+    hfov_deg = math.degrees(hfov_rad)
+    hfov_deg_all = [0, hfov_deg/2, hfov_deg]
+    imgh = self.sensor_size[1]
+    epd = imgh/(2*self.fnum*math.tan(hfov_rad))
+    efl = self.foclen
+    waves_nm = self.wave
+    cs_nor = []
+    ds_nor = []
+    ts_nor = []
+    for i in range(num_surf):
+        c = float(self.surfaces[i].c)
+        D = float(self.surfaces[i].r)*2
+        t = float(self.surfaces[i+1].d) - float(self.surfaces[i].d)
+        cs_nor.append(c*efl)
+        ds_nor.append(D/efl)
+        ts_nor.append(t/efl)
+    nds = []
+    Vds = []
+    for i in range(num_glass):
+        nd = self.materials[i].n
+        Vd = self.materials[i].V
+        nds.append(nd)
+        Vds.append(Vd)
+    spot_rms = self.evaluate_spotsize(M=9, spp=512)
+    as_c = -1
+    stop_index = 1
+    independent_as = 'FALSE'
+    
+    L = [epd, hfov_deg, json.dumps(hfov_deg_all), json.dumps(waves_nm), json.dumps(cs_nor), as_c,
+         json.dumps(cs_nor), json.dumps(ds_nor), json.dumps(ts_nor), json.dumps(nds), json.dumps(Vds),
+         efl, sequence, stop_index, independent_as, filename, spot_rms]
+    
+    # append list to csv file
+    is_init = not os.path.exists(csv_name)
+    with open(csv_name, "a", newline="") as f:
+        writer = csv.writer(f)
+        if is_init:
+            writer.writerow(header)
+        writer.writerow(L)
 
 
 # ====================================================================================

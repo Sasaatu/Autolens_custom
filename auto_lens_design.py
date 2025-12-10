@@ -47,7 +47,7 @@ def default_inputs():
     # System lengths
     args['flange'] = 1.2    # distance from last surface to sensor
     args['rff'] = 1.33      # d_total = imgh * rff # total distance  
-    args['d_aper'] = 0.2    # aperture thickness, d_total = d_opt + d_apt + flange
+    args['d_aper'] = 1e-4    # aperture thickness, d_total = d_opt + d_apt + flange
 
     # Surface geometry types
     args['is_sphere'] = True

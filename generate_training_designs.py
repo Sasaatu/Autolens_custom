@@ -7,11 +7,19 @@ from deeplens.basics import Glass_Table
 from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
+    # define specifications
     fov = 70.0
     waves = [520]
     num_lens = 4
     res_grid = 3
     num_combo = 100
+    iter = 500
+    iter_test = 50
+    iter_last = 200
+    iter_test_last = 50
+    is_sphere = True
+    is_conic = False
+    is_asphere = False
     save_final_design = True
 
     # define configuration grid
@@ -25,18 +33,22 @@ if __name__ == '__main__':
     args['HFOV'] = hfov_rad
     args['element'] = num_lens
     args['WAVES'] = waves
-    args['ITER'] = 100
-    args['ITER_TEST'] = 10
-    args['ITER_LAST'] = 100
-    args['ITER_TEST_LAST'] = 10
+    args['ITER'] = iter
+    args['ITER_TEST'] = iter_test   
+    args['ITER_LAST'] = iter_last
+    args['ITER_TEST_LAST'] = iter_test_last
+    args['is_sphere'] = is_sphere
+    args['is_conic'] = is_conic
+    args['is_asphere'] = is_asphere
     
     ################################################################
-    # Define lens materials
+    # Step1: Define lens materials
+    
     if num_lens <= 3:
         if num_lens == 1:
             args['GLASSES'] = ['n-bk7']
         elif num_lens == 2:
-            args['GLASSES'] = ['n-lak22', 'n-sf10']
+            args['GLASSES'] = ['n-bk7', 'sf2']
         elif num_lens == 3:
             args['GLASSES'] = ['sk16', 'f2', 'sk16'] 
     else:
@@ -87,7 +99,8 @@ if __name__ == '__main__':
      
     
     ################################################################
-    # Generate designs
+    # Step2: Generate designs
+    
     # create results directory
     current_time = datetime.now().strftime("%m%d-%H%M%S")
     sequence = 'GA'*num_lens
