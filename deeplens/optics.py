@@ -2442,27 +2442,42 @@ class Lensgroup():
         self.activate_surf(activate=False, diff_surf_range=diff_surf_range)
         
         
-    def evaluate_spotsize(self, M=9, spp=256):
+    def evaluate_spotsize(self, M=9, spp=256, lambda_rayloss=1e2):
         """ Evaluate spot size of designed lens.
         """
         # evaluate spot size
+        num_wave = len(self.wave)
         mag = 1 / self.calc_scale_pinhole(DEPTH)
         obj_r = self.sensor_size[0]/2/mag
-        wave = self.wave[0]
-        ray = self.sample_point_source(M=M,  spp=spp,  depth=DEPTH,  R=obj_r,  pupil=True, wavelength=wave)
-        ray, _, _ = self.trace(ray)
-        xy = ray.project_to(self.d_sensor)
-        
-        # plot spot diagram
-        rms_array = np.zeros(M*M)
-        # iterate over field points
-        for m in range(M):
-            for n in range(M):
-                xy_s = xy[:, m, n].detach().cpu().numpy().astype(float)
-                xy_cnt = np.mean(xy_s, axis=0)
-                dists = np.linalg.norm(xy_s - xy_cnt, axis=1)
-                rms_array[M*m+n] = np.sqrt(np.mean(dists**2))
-        rms_value = float(np.mean(rms_array))
+
+        RMS_wave = np.zeros(num_wave)
+        # iterate over wavelengths
+        for w in range(num_wave):
+            ray = self.sample_point_source(M=M,  spp=spp,  depth=DEPTH,  R=obj_r,  pupil=True, wavelength=self.wave[w])
+            ray, _, _ = self.trace(ray)
+            xy = ray.project_to(self.d_sensor)
+            
+            # plot spot diagram
+            RMS_field = np.zeros(M*M)
+            # iterate over field points
+            for m in range(M):
+                for n in range(M):
+                    xy_s = xy[:, m, n].detach().cpu().numpy().astype(float)
+                    valid = ray.ra[:, m, n].detach().cpu().numpy() > 0
+                    xy_valid = xy_s[valid, :]
+                    xy_cnt = np.mean(xy_valid, axis=0)
+                    dists = np.linalg.norm(xy_valid - xy_cnt, axis=1)
+                    rms_field = float(np.sqrt(np.mean(dists**2)))
+                    # check ray loss
+                    if all(valid):
+                        ray_loss = 0.0
+                    else:
+                        num_valid = int(np.sum(valid))
+                        num_all = valid.shape[0]
+                        ray_loss = lambda_rayloss*(1-num_valid/num_all)**2
+                    RMS_field[M*m+n] = rms_field + ray_loss
+            RMS_wave[w] = float(np.mean(RMS_field))
+        rms_value = float(np.mean(RMS_wave))
         
         return rms_value
 

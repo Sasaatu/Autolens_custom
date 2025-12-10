@@ -11,7 +11,7 @@ if __name__ == '__main__':
     
     args = default_inputs()
     # custom parmeters
-    Waves = [520]
+    Waves = [480, 520, 640]
     num_step = 1
     iter = 1
     iter_test = 1
@@ -33,11 +33,11 @@ if __name__ == '__main__':
     # design lens system
     lens = design_lens(args, save_inter_design, save_final_design)
     
-    # save design in csv file
-    lens.append_csv('./dummy.csv')
+    # # save design in csv file
+    # lens.append_csv('./dummy.csv')
 
-    # # evaluate spot size
-    # # lens.evaluate_spotsize(M=9, spp=256)
+    # evaluate spot size
+    lens.evaluate_spotsize(M=9, spp=256)
     # mag = 1 / lens.calc_scale_pinhole(DEPTH)
     # obj_r = lens.sensor_size[0]/2/mag
     # wave = lens.wave[0]
