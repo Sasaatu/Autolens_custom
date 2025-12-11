@@ -90,11 +90,16 @@ if __name__ == '__main__':
                 args['rff'] = rff
                 args = config(args)
                 
-                lens = design_lens(args, False, False)
-                # evaluate spot size
-                rms_diag[j] = lens.evaluate_spotsize()
-                # distruct instance
-                del lens
+                try:
+                    lens = design_lens(args, False, False)
+                    # evaluate spot size
+                    rms_diag[j] = lens.evaluate_spotsize()
+                    # distruct instance
+                    del lens
+                except Exception as e:
+                    print(f"Combination failed for EPD: {epd}, IMGH: {imgh}, DIST: {dist} with error {e}\n")
+                    rms_diag[j] = float('nan')
+                    continue
                 
             rms_array[i] = float(np.nanmean(rms_diag))
         # select best material combination wheere spot size is minimum
