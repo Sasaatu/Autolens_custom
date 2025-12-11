@@ -105,11 +105,12 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%m%d-%H%M%S")
     sequence = 'GA'*num_lens
     num_gen = res_grid ** 3
-    dir_results = f'./results/{current_time}_{sequence}_{num_gen}training_designs'
+    dir_results = f'./results/{current_time}_{sequence}_{num_gen}_Training_Designs'
     os.makedirs(dir_results, exist_ok=True)
     args['results_root'] = dir_results
     # csv file name
-    csv_name = dir_results + f'/{current_time}_{sequence}_{num_gen}training_designs.csv'
+    idx_GA = dir_results.find('GA')
+    csv_name = dir_results + '/' + dir_results[idx_GA:] + '.csv'
     # create error log file
     error_log_name = dir_results + '/generation_error.txt'
     with open(error_log_name, "w") as f:
@@ -119,35 +120,35 @@ if __name__ == '__main__':
     for epd in epd_range:
         for imgh in imgh_range:
             for dist in dist_range:
-                try:
-                    # set config
-                    fnum = imgh/(2*epd*math.tan(hfov_rad))
-                    fnum_start = fnum*1.5
-                    diag_start = imgh/2.0
-                    rff = dist / imgh
-                    args['FNUM'] = fnum
-                    args['DIAG'] = imgh
-                    args['FNUM_START'] = fnum_start
-                    args['DIAG_START'] = diag_start
-                    args['rff'] = rff
-                    # arrange design configuration
-                    args = config(args)
-                    
-                    # create lens
-                    lens = design_lens(args, False, save_final_design)
+                # try:
+                # set config
+                fnum = imgh/(2*epd*math.tan(hfov_rad))
+                fnum_start = fnum*1.5
+                diag_start = imgh/2.0
+                rff = dist / imgh
+                args['FNUM'] = fnum
+                args['DIAG'] = imgh
+                args['FNUM_START'] = fnum_start
+                args['DIAG_START'] = diag_start
+                args['rff'] = rff
+                # arrange design configuration
+                args = config(args)
+                
+                # create lens
+                lens = design_lens(args, False, save_final_design)
 
-                    # save design in zmx, json and png file
-                    logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
-                    if save_final_design:
-                        result_dir = args['result_dir']
-                        lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
-                        lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
-                        lens.append_csv(csv_name)
-                    
-                    # distruct instance
-                    del lens
-                except Exception as e:
-                    # append error text and continue
-                    with open(error_log_name, "a") as f:
-                        f.write(f"Design failed for EPD: {epd}, IMGH: {imgh}, DIST: {dist} with error {e}\n")
-                    continue
+                # save design in zmx, json and png file
+                logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
+                if save_final_design:
+                    result_dir = args['result_dir']
+                    lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
+                    lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
+                    lens.append_csv(csv_name)
+                
+                # distruct instance
+                del lens
+                # except Exception as e:
+                #     # append error text and continue
+                #     with open(error_log_name, "a") as f:
+                #         f.write(f"Design failed for EPD: {epd}, IMGH: {imgh}, DIST: {dist} with error {e}\n")
+                #     continue
