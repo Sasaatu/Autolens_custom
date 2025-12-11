@@ -10,15 +10,15 @@ if __name__ == '__main__':
     rate_hfov = 1.2
 
     # define specifications
-    fov = 20.0
+    fov = 60.0
     waves = [520]
-    num_lens = 2
+    num_lens = 4
     res_grid = 3
     num_combo = 100
-    iter = 100 #500
-    iter_test = 50 #50
-    iter_last = 100 #200
-    iter_test_last = 50 #50
+    iter = 500
+    iter_test = 50
+    iter_last = 200
+    iter_test_last = 50
     is_sphere = True
     is_conic = False
     is_asphere = False
@@ -31,8 +31,7 @@ if __name__ == '__main__':
     
     # set unchanged config
     args = default_inputs()
-    hfov_rad = math.radians(fov) / 2
-    args['HFOV'] = hfov_rad
+    hfov_tgt = math.radians(fov) / 2
     args['element'] = num_lens
     args['WAVES'] = waves
     args['iter'] = iter
@@ -74,13 +73,16 @@ if __name__ == '__main__':
             rms_diag = np.zeros(res_grid)
             for j in range(res_grid):
                 # set config
-                epd = epd_range[j]
-                imgh = imgh_range[j]
-                dist = dist_range[j]
-                fnum = imgh/(2*epd*math.tan(hfov_rad))
+                epd = float(epd_range[j])
+                imgh = float(imgh_range[j])
+                dist = float(dist_range[j])
+
+                hfov_ref = math.atan((imgh/2)/dist)
+                fnum = imgh/(2*epd*math.tan(hfov_ref))
                 fnum_start = fnum*1.5
                 diag_start = imgh/2.0
                 rff = dist / imgh
+                args['HFOV'] = hfov_ref
                 args['FNUM'] = fnum
                 args['DIAG'] = imgh
                 args['FNUM_START'] = fnum_start
@@ -94,7 +96,7 @@ if __name__ == '__main__':
                 # distruct instance
                 del lens
                 
-            rms_array[i] = np.mean(rms_diag)
+            rms_array[i] = float(np.mean(rms_diag))
         # select best material combination wheere spot size is minimum
         idx = np.argmin(rms_array)
         args['GLASSES'] = combinations[idx]
@@ -129,11 +131,11 @@ if __name__ == '__main__':
                     dist = float(dist)
 
                     hfov_ref = math.atan((imgh/2)/dist)
-                    if hfov_rad > hfov_ref * rate_hfov:
+                    if hfov_tgt > hfov_ref * rate_hfov:
                         hfov_eff = hfov_ref
                     else:
-                        hfov_eff = hfov_rad
-                    fnum = imgh/(2*epd*math.tan(hfov_rad))
+                        hfov_eff = hfov_tgt
+                    fnum = imgh/(2*epd*math.tan(hfov_eff))
                     fnum_start = fnum*1.5
                     diag_start = imgh/2.0
                     rff = dist / imgh
