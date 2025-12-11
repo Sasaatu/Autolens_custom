@@ -96,7 +96,7 @@ if __name__ == '__main__':
                 # distruct instance
                 del lens
                 
-            rms_array[i] = float(np.mean(rms_diag))
+            rms_array[i] = float(np.nanmean(rms_diag))
         # select best material combination wheere spot size is minimum
         idx = np.argmin(rms_array)
         args['GLASSES'] = combinations[idx]
