@@ -8,24 +8,24 @@ from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     # define specifications
-    fov = 70.0
-    waves = [480, 520]
-    num_lens = 3
+    fov = 20.0
+    waves = [520]
+    num_lens = 2
     res_grid = 3
     num_combo = 100
-    iter = 500
-    iter_test = 50
-    iter_last = 200
-    iter_test_last = 50
+    iter = 100 #500
+    iter_test = 50 #50
+    iter_last = 100 #200
+    iter_test_last = 50 #50
     is_sphere = True
     is_conic = False
     is_asphere = False
     save_final_design = True
 
     # define configuration grid
-    epd_range = np.linspace(0.5, 5.0, res_grid)
-    imgh_range = np.linspace(1.0, 50.0, res_grid)
-    dist_range = np.linspace(4.0, 100.0, res_grid)
+    epd_range = np.linspace(1.0, 5.0, res_grid)
+    imgh_range = np.linspace(2.0, 10.0, res_grid)
+    dist_range = np.linspace(5.0, 10.0, res_grid)
     
     # set unchanged config
     args = default_inputs()
@@ -33,10 +33,10 @@ if __name__ == '__main__':
     args['HFOV'] = hfov_rad
     args['element'] = num_lens
     args['WAVES'] = waves
-    args['ITER'] = iter
-    args['ITER_TEST'] = iter_test   
-    args['ITER_LAST'] = iter_last
-    args['ITER_TEST_LAST'] = iter_test_last
+    args['iter'] = iter
+    args['iter_test'] = iter_test   
+    args['iter_last'] = iter_last
+    args['iter_test_last'] = iter_test_last
     args['is_sphere'] = is_sphere
     args['is_conic'] = is_conic
     args['is_asphere'] = is_asphere
@@ -120,35 +120,35 @@ if __name__ == '__main__':
     for epd in epd_range:
         for imgh in imgh_range:
             for dist in dist_range:
-                # try:
-                # set config
-                fnum = imgh/(2*epd*math.tan(hfov_rad))
-                fnum_start = fnum*1.5
-                diag_start = imgh/2.0
-                rff = dist / imgh
-                args['FNUM'] = fnum
-                args['DIAG'] = imgh
-                args['FNUM_START'] = fnum_start
-                args['DIAG_START'] = diag_start
-                args['rff'] = rff
-                # arrange design configuration
-                args = config(args)
-                
-                # create lens
-                lens = design_lens(args, False, save_final_design)
+                try:
+                    # set config
+                    fnum = imgh/(2*epd*math.tan(hfov_rad))
+                    fnum_start = fnum*1.5
+                    diag_start = imgh/2.0
+                    rff = dist / imgh
+                    args['FNUM'] = float(fnum)
+                    args['DIAG'] = float(imgh)
+                    args['FNUM_START'] = float(fnum_start)
+                    args['DIAG_START'] = float(diag_start)
+                    args['rff'] = float(rff)
+                    # arrange design configuration
+                    args = config(args)
+                    
+                    # create lens
+                    lens = design_lens(args, False, save_final_design)
 
-                # save design in zmx, json and png file
-                logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
-                if save_final_design:
-                    result_dir = args['result_dir']
-                    lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
-                    lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
-                    lens.append_csv(csv_name)
-                
-                # distruct instance
-                del lens
-                # except Exception as e:
-                #     # append error text and continue
-                #     with open(error_log_name, "a") as f:
-                #         f.write(f"Design failed for EPD: {epd}, IMGH: {imgh}, DIST: {dist} with error {e}\n")
-                #     continue
+                    # save design in zmx, json and png file
+                    logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
+                    if save_final_design:
+                        result_dir = args['result_dir']
+                        lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
+                        lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
+                        lens.append_csv(csv_name)
+                    
+                    # distruct instance
+                    del lens
+                except Exception as e:
+                    # append error text and continue
+                    with open(error_log_name, "a") as f:
+                        f.write(f"Design failed for EPD: {epd}, IMGH: {imgh}, DIST: {dist} with error {e}\n")
+                    continue

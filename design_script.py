@@ -37,7 +37,7 @@ if __name__ == '__main__':
     args['DIAG_START'] = diag_start
     args['rff'] = rff
     args['element'] = num_lens
-    args['GLASS'] = Glasses
+    args['GLASSES'] = Glasses
     args['WAVES'] = Waves
     args['iter'] = iter
     args['iter_test'] = iter_test

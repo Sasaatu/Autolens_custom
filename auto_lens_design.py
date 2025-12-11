@@ -57,7 +57,7 @@ def default_inputs():
     
     # Refractive index parameters
     args['WAVES'] = [520]
-    args['GLASS'] = ['n-bk7'] * 2
+    args['GLASSES'] = ['n-bk7'] * 2
     
     # Ray tracing parameters for curriculum learning
     args['num_ray'] = 256   # number of rays per field point
@@ -114,7 +114,7 @@ def design_lens(args, save_inter_design, save_final_design):
 
     # =====> 1. Load or create lens
     if args['brute_force']:
-        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=HFOV, imgh=DIAG, fnum=FNUM, surfnum=args['element'], glass=args['GLASS'], dir=result_dir)
+        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=HFOV, imgh=DIAG, fnum=FNUM, surfnum=args['element'], glass=args['GLASSES'], dir=result_dir)
         lens_name = f'./{result_dir}/starting_point_hfov{HFOV}_imgh{DIAG}_fnum{FNUM}.txt'
         lens = deeplens.Lensgroup(filename=lens_name, device=device)
         lens.wave = args['WAVES']
