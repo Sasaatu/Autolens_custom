@@ -7,6 +7,8 @@ from deeplens.basics import Glass_Table
 from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
+    rate_hfov = 1.2
+
     # define specifications
     fov = 20.0
     waves = [520]
@@ -122,15 +124,25 @@ if __name__ == '__main__':
             for dist in dist_range:
                 try:
                     # set config
+                    epd = float(epd)
+                    imgh = float(imgh)
+                    dist = float(dist)
+
+                    hfov_ref = math.atan((imgh/2)/dist)
+                    if hfov_rad > hfov_ref * rate_hfov:
+                        hfov_eff = hfov_ref
+                    else:
+                        hfov_eff = hfov_rad
                     fnum = imgh/(2*epd*math.tan(hfov_rad))
                     fnum_start = fnum*1.5
                     diag_start = imgh/2.0
                     rff = dist / imgh
-                    args['FNUM'] = float(fnum)
-                    args['DIAG'] = float(imgh)
-                    args['FNUM_START'] = float(fnum_start)
-                    args['DIAG_START'] = float(diag_start)
-                    args['rff'] = float(rff)
+                    args['HFOV'] = hfov_eff
+                    args['FNUM'] = fnum
+                    args['DIAG'] = imgh
+                    args['FNUM_START'] = fnum_start
+                    args['DIAG_START'] = diag_start
+                    args['rff'] = rff
                     # arrange design configuration
                     args = config(args)
                     
