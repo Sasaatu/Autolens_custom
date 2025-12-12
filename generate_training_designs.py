@@ -13,7 +13,7 @@ if __name__ == '__main__':
     waves = [520]
     num_lens = 4
     res_grid = 3
-    num_combo = 100     # number of glass combinations for spot size test
+    num_combo = 3       # number of glass combinations for spot size test
     iter = 500
     iter_test = 50
     iter_last = 200
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         elif num_lens == 3:
             args['GLASSES'] = ['sk16', 'f2', 'sk16']
 
-        glass_logger.info(f'Glasses:{args['GLASSES']} is selected.')
+        glass_logger.info(f"Glasses:{args['GLASSES']} is selected.")
     else:
         # generate material combinations
         # duplication between combos: NO, materials: YES
@@ -128,7 +128,7 @@ if __name__ == '__main__':
                     del lens
                 except Exception as e:
                     # append error log and continue
-
+                    error_logger.error(f"Glass error: {args['GLASSES']} for EPD {epd:.2f}, IMGH {imgh:.2f}, DIST {dist:.2f} with error {e}")    
                     rms_diag[j] = float('nan')
                     continue
             
@@ -139,8 +139,9 @@ if __name__ == '__main__':
         # select best material combination wheere spot size is minimum
         idx = np.argmin(rms_array)
         args['GLASSES'] = combinations[idx]
+        glass_logger.info(f"Glasses #{idx+1}: {args['GLASSES']} is selected.")
+        glass_logger.info(f"Glass combination prcess is finished.")
      
-    
     ################################################################
     # Step2: Generate designs
     
@@ -191,6 +192,5 @@ if __name__ == '__main__':
                     del lens
                 except Exception as e:
                     # append error log and continue
-                    with open(error_log_name, "a") as f:
-                        f.write(f"Design failed for EPD: {epd}, IMGH: {imgh}, DIST: {dist} with error {e}\n")
+                    error_logger.error(f"Design error: EPD {epd:.2f}, IMGH {imgh:.2f}, DIST {dist:.2f} with error {e}")
                     continue
