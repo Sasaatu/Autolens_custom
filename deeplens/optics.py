@@ -2478,7 +2478,7 @@ class Lensgroup():
                         num_all = valid.shape[0]
                         ray_loss = lambda_rayloss*(1-num_valid/num_all)**2
                     RMS_field[M*m+n] = rms_field + ray_loss
-            RMS_wave[w] = float(np.mean(RMS_field))
+            RMS_wave[w] = float(np.nanmean(RMS_field))
         rms_value = float(np.mean(RMS_wave))
         
         return rms_value

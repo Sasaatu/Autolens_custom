@@ -7,14 +7,13 @@ from deeplens.basics import Glass_Table
 from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
-    rate_hfov = 1.2
-
     # define specifications
-    fov = 60.0
+    fov = 60.0          # target FOV in degree
+    tol_hfov = 0.2      # tolerance to target hfov
     waves = [520]
     num_lens = 4
     res_grid = 3
-    num_combo = 100
+    num_combo = 100     # number of glass combinations for spot size test
     iter = 500
     iter_test = 50
     iter_last = 200
@@ -41,7 +40,36 @@ if __name__ == '__main__':
     args['is_sphere'] = is_sphere
     args['is_conic'] = is_conic
     args['is_asphere'] = is_asphere
-    
+
+    ################################################################
+    # Trainig data folder under AutoLens/results/
+
+    current_time = datetime.now().strftime("%m%d-%H%M%S")
+    sequence = 'GA'*num_lens
+    num_gen = res_grid ** 3
+    dir_results = f'./results/{current_time}_{sequence}_{num_gen}_Training_Designs'
+    os.makedirs(dir_results, exist_ok=True)
+    args['results_root'] = dir_results
+
+    ################################################################
+    # Logging configuration
+
+    # log file locations
+    glass_filename = dir_results + '/glass_rms.log'
+    error_filename = dir_results + '/process_error.log'
+
+    # log for glass combination test
+    logging.basicConfig(
+        level=logging.INFO,  # Set the level to INFO so that we log our data
+        format='%(asctime)s - %(message)s',  # Format to include timestamp in the log
+    )
+    glass_logger = logging.getLogger('glass_logger')
+    glass_handler = logging.FileHandler(glass_filename)
+    glass_logger.addHandler(glass_handler)
+    error_logger = logging.getLogger('error_logger')
+    error_handler = logging.FileHandler(error_filename)
+    error_logger.addHandler(error_handler)
+
     ################################################################
     # Step1: Define lens materials
     
@@ -51,7 +79,9 @@ if __name__ == '__main__':
         elif num_lens == 2:
             args['GLASSES'] = ['n-bk7', 'sf2']
         elif num_lens == 3:
-            args['GLASSES'] = ['sk16', 'f2', 'sk16'] 
+            args['GLASSES'] = ['sk16', 'f2', 'sk16']
+
+        glass_logger.info(f'Glasses:{args['GLASSES']} is selected.')
     else:
         # generate material combinations
         # duplication between combos: NO, materials: YES
@@ -90,13 +120,22 @@ if __name__ == '__main__':
                 args['rff'] = rff
                 args = config(args)
                 
-                lens = design_lens(args, False, False)
-                # evaluate spot size
-                rms_diag[j] = lens.evaluate_spotsize()
-                # distruct instance
-                del lens
-                
-            rms_array[i] = float(np.mean(rms_diag))
+                try:
+                    lens = design_lens(args, False, False)
+                    # evaluate spot size
+                    rms_diag[j] = lens.evaluate_spotsize()
+                    # distruct instance
+                    del lens
+                except Exception as e:
+                    # append error log and continue
+
+                    rms_diag[j] = float('nan')
+                    continue
+            
+            rms_glass = float(np.nanmean(rms_diag))
+            rms_array[i] = rms_glass
+            glass_logger.info(f"Glasses: {args['GLASSES']}, RMS Spot Size: {rms_glass:.4f} mm")
+
         # select best material combination wheere spot size is minimum
         idx = np.argmin(rms_array)
         args['GLASSES'] = combinations[idx]
@@ -105,20 +144,9 @@ if __name__ == '__main__':
     ################################################################
     # Step2: Generate designs
     
-    # create results directory
-    current_time = datetime.now().strftime("%m%d-%H%M%S")
-    sequence = 'GA'*num_lens
-    num_gen = res_grid ** 3
-    dir_results = f'./results/{current_time}_{sequence}_{num_gen}_Training_Designs'
-    os.makedirs(dir_results, exist_ok=True)
-    args['results_root'] = dir_results
     # csv file name
     idx_GA = dir_results.find('GA')
     csv_name = dir_results + '/' + dir_results[idx_GA:] + '.csv'
-    # create error log file
-    error_log_name = dir_results + '/generation_error.txt'
-    with open(error_log_name, "w") as f:
-        f.write("")
     
     # iterate over design grid points
     for epd in epd_range:
@@ -131,7 +159,7 @@ if __name__ == '__main__':
                     dist = float(dist)
 
                     hfov_ref = math.atan((imgh/2)/dist)
-                    if hfov_tgt > hfov_ref * rate_hfov:
+                    if hfov_tgt>=hfov_ref*(1-tol_hfov) and hfov_tgt<=hfov_ref*(1+tol_hfov):
                         hfov_eff = hfov_ref
                     else:
                         hfov_eff = hfov_tgt
@@ -162,7 +190,7 @@ if __name__ == '__main__':
                     # distruct instance
                     del lens
                 except Exception as e:
-                    # append error text and continue
+                    # append error log and continue
                     with open(error_log_name, "a") as f:
                         f.write(f"Design failed for EPD: {epd}, IMGH: {imgh}, DIST: {dist} with error {e}\n")
                     continue
