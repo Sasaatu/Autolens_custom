@@ -1,7 +1,6 @@
 """ Automated lens design with curriculum learning, using RMS errors as loss function.
 """
 import math
-import logging
 from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
@@ -21,8 +20,6 @@ if __name__ == '__main__':
     iter_test = 50
     iter_last = 200
     iter_test_last = 50
-    save_inter_design = True
-    save_final_design = True
     
     # update inputs
     hfov_rad = math.radians(fov) / 2
@@ -48,10 +45,4 @@ if __name__ == '__main__':
     args = config(args)
     
     # design lens system
-    lens = design_lens(args, save_inter_design, save_final_design)
-
-    logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
-    result_dir = args['result_dir']
-    lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
-    lens.write_lens_json(f'{result_dir}/final_lens.json')
-    lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
+    lens = design_lens(args)

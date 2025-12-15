@@ -21,7 +21,6 @@ if __name__ == '__main__':
     is_sphere = True
     is_conic = False
     is_asphere = False
-    save_final_design = True
 
     # define configuration grid
     epd_range = np.linspace(1.0, 5.0, res_grid)
@@ -40,6 +39,7 @@ if __name__ == '__main__':
     args['is_sphere'] = is_sphere
     args['is_conic'] = is_conic
     args['is_asphere'] = is_asphere
+    args['save_steps'] = False
 
     ################################################################
     # Trainig data folder under AutoLens/results/
@@ -73,6 +73,9 @@ if __name__ == '__main__':
     ################################################################
     # Step1: Define lens materials
     
+    # omit file saving
+    args['save_global'] = False
+
     if num_lens <= 3:
         if num_lens == 1:
             args['GLASSES'] = ['n-bk7']
@@ -121,7 +124,7 @@ if __name__ == '__main__':
                 args = config(args)
                 
                 try:
-                    lens = design_lens(args, False, False)
+                    lens = design_lens(args)
                     # evaluate spot size
                     rms_diag[j] = lens.evaluate_spotsize()
                     # distruct instance
@@ -144,6 +147,9 @@ if __name__ == '__main__':
      
     ################################################################
     # Step2: Generate designs
+
+    # save last designs
+    args['save_global'] = True
     
     # csv file name
     idx_GA = dir_results.find('GA')
@@ -178,16 +184,8 @@ if __name__ == '__main__':
                     args = config(args)
                     
                     # create lens
-                    lens = design_lens(args, False, save_final_design)
+                    lens = design_lens(args)
 
-                    # save design in zmx, json and png file
-                    logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
-                    if save_final_design:
-                        result_dir = args['result_dir']
-                        lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
-                        lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
-                        lens.append_csv(csv_name)
-                    
                     # distruct instance
                     del lens
                 except Exception as e:

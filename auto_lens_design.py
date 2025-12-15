@@ -62,6 +62,10 @@ def default_inputs():
     # Ray tracing parameters for curriculum learning
     args['num_ray'] = 256   # number of rays per field point
     args['num_source'] = 9  # number of field points per axis
+
+    # save folder setting
+    args['save_global'] = True      # create design root folder
+    args['save_steps'] = True       # create step subfolders
     
     return args
 
@@ -83,27 +87,29 @@ def config(args):
     current_time = datetime.now().strftime("%m%d-%H%M%S")
     exp_name = current_time + '-' + str(num_lens) + 'P' + '_Epd' + epd_str + '_ImgH' + img_h_str + '_TotLen' + tot_dist_str
     result_dir = f'{results_root}/{exp_name}'
-    os.makedirs(result_dir, exist_ok=True)
     args['result_dir'] = result_dir
+    os.makedirs(result_dir, exist_ok=True)
     
     # random seed
     set_seed(args['seed'])
     
     # Log
-    set_logger(result_dir)
-    logging.info(f'EXP: {result_dir}')
+    if args['save_global']:
+        set_logger(result_dir)
+        logging.info(f'EXP: {result_dir}')
 
     # Device
     num_gpus = torch.cuda.device_count()
     args['num_gpus'] = num_gpus
     device = torch.device(f"cuda" if torch.cuda.is_available() else "cpu")
     args['device'] = device
-    logging.info(f'Using {num_gpus} GPUs')
+    if args['save_global']:
+        logging.info(f'Using {num_gpus} GPUs')
 
     return args
 
 
-def design_lens(args, save_inter_design, save_final_design):
+def design_lens(args):
     """ Create lens instance
     """
     HFOV = args['HFOV']
@@ -111,6 +117,7 @@ def design_lens(args, save_inter_design, save_final_design):
     DIAG = args['DIAG']
     result_dir = args['result_dir']
     device = args['device']
+    save_global = args['save_global']
 
     # =====> 1. Load or create lens
     if args['brute_force']:
@@ -129,9 +136,11 @@ def design_lens(args, save_inter_design, save_final_design):
             if lens.is_asphere:
                 lens.surfaces[i].init_ai(args['ai_degree'])
             lens.surfaces[i].init_d()
-        # delete starting design file
-        if not save_final_design:
+        # delete starting design file and design folder
+        if not save_global:
+            folder_name = './' + result_dir
             os.remove(lens_name)
+            os.rmdir(folder_name)
     else:
         lens = deeplens.Lensgroup(filename=args['filename'])
         lens.correct_shape()
@@ -139,12 +148,19 @@ def design_lens(args, save_inter_design, save_final_design):
     # set target performance
     lens.set_target_fov_fnum(hfov=HFOV, fnum=FNUM, imgh=DIAG)
     # refine lens
-    curriculum_learning(lens, args, save_inter_design)
+    curriculum_learning(lens, args)
 
     # analyze final result
     lens.prune(outer=0.2)
     lens.post_computation()
-    
+
+    if save_global:
+        logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
+
+        lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
+        lens.write_lens_json(f'{result_dir}/final_lens.json')
+        lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
+
     return lens
 
 
@@ -163,7 +179,7 @@ def change_lens(lens, diag, fnum):
     return lens
 
 
-def curriculum_learning(lens, args, save_design):
+def curriculum_learning(lens, args):
     """ Curriculum learning for lens design.
     """
     lrs = [float(lr) for lr in args['lrs']]
@@ -182,6 +198,8 @@ def curriculum_learning(lens, args, save_design):
     iter_test_last = args['iter_test_last']
     num_source = args['num_source']
     num_ray = args['num_ray']
+    save_global = args['save_global']
+    save_steps = args['save_steps']
     
     for step in range(curriculum_steps+1):
         
@@ -191,14 +209,16 @@ def curriculum_learning(lens, args, save_design):
         fnum1 = fnum_start + (fnum_end - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
         lens = change_lens(lens, diag1, fnum1)
 
-        logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
+        if save_global:
+            logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
         
         # ==> Lens design using RMS errors
-        lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, num_source=num_source, num_ray=num_ray, importance_sampling=False, result_dir=result_dir, save_design=save_design)
+        lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, num_source=num_source, num_ray=num_ray, importance_sampling=False, result_dir=result_dir, save_global=save_global, save_steps=save_steps)
 
     # ==> Refine lens at the last step
-    lens.refine(iterations=iter_last, test_per_iter=iter_test_last, num_source=num_source, num_ray=num_ray, centroid=True, importance_sampling=True, result_dir=result_dir, save_design=save_design)
-    logging.info('==> Training finish.')
+    lens.refine(iterations=iter_last, test_per_iter=iter_test_last, num_source=num_source, num_ray=num_ray, centroid=True, importance_sampling=True, result_dir=result_dir, save_global=save_global, save_steps=save_steps)
+    if save_global:
+        logging.info('==> Training finish.')
 
     # ==> Final lens
     lens = change_lens(lens, diag_target, fnum_target)

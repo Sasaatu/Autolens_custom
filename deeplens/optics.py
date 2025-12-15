@@ -2340,7 +2340,7 @@ class Lensgroup():
         return optimizer, scheduler
 
 
-    def refine(self, lrs=[5e-4, 1e-4, 0.1, 1e-4], decay=0.1, iterations=2000, test_per_iter=100, num_source=9, num_ray=256, depth=DEPTH, shape_control=True, centroid=False, importance_sampling=False, result_dir='./results', save_design=True):
+    def refine(self, lrs=[5e-4, 1e-4, 0.1, 1e-4], decay=0.1, iterations=2000, test_per_iter=100, num_source=9, num_ray=256, depth=DEPTH, shape_control=True, centroid=False, importance_sampling=False, result_dir='./results', save_global=True, save_steps=True):
         """ Optimize a given lens by minimizing rms errors.
 
         Args:
@@ -2358,11 +2358,12 @@ class Lensgroup():
         
         # make sub directories for step designs
         result_dir = result_dir + '/' + datetime.now().strftime("%m%d-%H%M%S")+ '-DesignLensRMS'
-        if save_design:
+        if save_steps and save_global:
             os.makedirs(result_dir, exist_ok=True)
-        if not logging.getLogger().hasHandlers():
-            set_logger(result_dir)
-        logging.info(f'lr:{lrs}, decay:{decay}, iterations:{iterations}, spp:{spp}, M:{M}.')
+        if save_global:
+            if not logging.getLogger().hasHandlers():
+                set_logger(result_dir)
+            logging.info(f'lr:{lrs}, decay:{decay}, iterations:{iterations}, spp:{spp}, M:{M}.')
 
         # Training
         pbar = tqdm(total=iterations+1, desc='Progress', postfix={'rms': 0})
@@ -2377,7 +2378,7 @@ class Lensgroup():
                     if i > 0:
                         if shape_control:
                             self.correct_shape(d_aper=0.1)
-                    if save_design:
+                    if save_steps and save_global:
                         self.analysis(f'{result_dir}/iter{i}', draw_layout=True)
 
             # =========================================
