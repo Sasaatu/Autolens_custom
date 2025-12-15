@@ -81,7 +81,7 @@ if __name__ == '__main__':
         elif num_lens == 3:
             args['GLASSES'] = ['sk16', 'f2', 'sk16']
 
-        glass_logger.info(f"Glasses:{args['GLASSES']} is selected.")
+        glass_logger.info(f"Glasses: {args['GLASSES']} is selected.")
     else:
         # generate material combinations
         # duplication between combos: NO, materials: YES
@@ -138,9 +138,9 @@ if __name__ == '__main__':
 
         # select best material combination wheere spot size is minimum
         idx = np.argmin(rms_array)
-        args['GLASSES'] = combinations[idx]
+        args['GLASSES'] = list(combinations[idx])
         glass_logger.info(f"Glasses #{idx+1}: {args['GLASSES']} is selected.")
-        glass_logger.info(f"Glass combination prcess is finished.")
+    glass_logger.info(f"Glass combination process is finished.")
      
     ################################################################
     # Step2: Generate designs
