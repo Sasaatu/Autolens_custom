@@ -11,9 +11,9 @@ if __name__ == '__main__':
     fov = 60.0          # target FOV in degree
     tol_hfov = 0.2      # tolerance to target hfov
     waves = [520]
-    num_lens = 4
+    num_lens = 3
     res_grid = 3
-    num_combo = 3       # number of glass combinations for spot size test
+    num_combo = 3       # number of glass combinations
     iter = 100
     iter_test = 20
     iter_last = 100
@@ -23,9 +23,15 @@ if __name__ == '__main__':
     is_asphere = False
 
     # define configuration grid
-    epd_range = np.linspace(1.0, 5.0, res_grid)
-    imgh_range = np.linspace(2.0, 10.0, res_grid)
-    dist_range = np.linspace(5.0, 10.0, res_grid)
+    # epd_range = np.linspace(1.0, 5.0, res_grid)
+    # imgh_range = np.linspace(2.0, 10.0, res_grid)
+    # dist_range = np.linspace(5.0, 10.0, res_grid)
+    ###
+    res_grid = 1
+    epd_range = np.linspace(1.0, 1.0, res_grid)
+    imgh_range = np.linspace(2.0, 2.0, res_grid)
+    dist_range = np.linspace(10.0, 10.0, res_grid)
+    ###
     
     # set unchanged config
     args = default_inputs()
@@ -167,9 +173,9 @@ if __name__ == '__main__':
 
                     hfov_ref = math.atan((imgh/2)/dist)
                     if hfov_tgt>=hfov_ref*(1-tol_hfov) and hfov_tgt<=hfov_ref*(1+tol_hfov):
-                        hfov_eff = hfov_ref
-                    else:
                         hfov_eff = hfov_tgt
+                    else:
+                        hfov_eff = hfov_ref
                     fnum = imgh/(2*epd*math.tan(hfov_eff))
                     fnum_start = fnum*1.5
                     diag_start = imgh/2.0

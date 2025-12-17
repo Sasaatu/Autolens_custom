@@ -2431,6 +2431,17 @@ class Lensgroup():
             L_reg = self.loss_reg()
             L_total = sum(loss_rms) + w_reg * L_reg
 
+            # raise error if nan loss detected
+            if not torch.isfinite(L_total).item():
+                loss_str = []
+                if not torch.isfinite(sum(loss_rms)).item():
+                    loss_str.append('loss_rms')
+                if not math.isfinite(w_reg):
+                    loss_str.append('w_reg')
+                if not torch.isfinite(L_reg).item():
+                    loss_str.append('L_reg')
+                raise RuntimeError(f"Non-finite value detected in {loss_str}")
+
             # => Back-propagation
             optimizer.zero_grad()
             L_total.backward()
