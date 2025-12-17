@@ -14,10 +14,10 @@ if __name__ == '__main__':
     num_lens = 4
     res_grid = 3
     num_combo = 3       # number of glass combinations for spot size test
-    iter = 500
-    iter_test = 50
-    iter_last = 200
-    iter_test_last = 50
+    iter = 100
+    iter_test = 20
+    iter_last = 100
+    iter_test_last = 20
     is_sphere = True
     is_conic = False
     is_asphere = False
@@ -185,6 +185,9 @@ if __name__ == '__main__':
                     
                     # create lens
                     lens = design_lens(args)
+
+                    # stock design in csv file
+                    lens.append_csv(csv_name)
 
                     # distruct instance
                     del lens
