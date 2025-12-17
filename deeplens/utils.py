@@ -21,19 +21,27 @@ def set_seed(seed=0):
     torch.backends.cudnn.enabled = False
 
 def set_logger(dir='./'):
-    logger = logging.getLogger()
-    logger.setLevel('DEBUG')
+    
+    log_name = f"{dir}/output.log"
+    
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    
+    # remove old handlers
+    root.handlers.clear()
+    
     BASIC_FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
     DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(BASIC_FORMAT, DATE_FORMAT)
 
+    # attach new stream handler
     chlr = logging.StreamHandler()
     chlr.setFormatter(formatter)
-    chlr.setLevel('INFO')
+    chlr.setLevel(logging.INFO)
+    root.addHandler(chlr)
 
-    fhlr = logging.FileHandler(f"{dir}/output.log")
+    # attach new file handler
+    fhlr = logging.FileHandler(log_name)
     fhlr.setFormatter(formatter)
-    fhlr.setLevel('INFO')
-
-    logger.addHandler(chlr)
-    logger.addHandler(fhlr)
+    fhlr.setLevel(logging.INFO)
+    root.addHandler(fhlr)
