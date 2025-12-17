@@ -44,5 +44,8 @@ if __name__ == '__main__':
     # arrange design configuration
     args = config(args)
     
+    # define csv file name
+    args['designs_csv'] = args['result_dir'] + '/curriculum_designs.csv'
+    
     # design lens system
     lens = design_lens(args)

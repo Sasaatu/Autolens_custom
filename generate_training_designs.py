@@ -14,6 +14,7 @@ if __name__ == '__main__':
     num_lens = 3
     res_grid = 3
     num_combo = 3       # number of glass combinations
+    num_step = 5
     iter = 100
     iter_test = 20
     iter_last = 100
@@ -23,21 +24,16 @@ if __name__ == '__main__':
     is_asphere = False
 
     # define configuration grid
-    # epd_range = np.linspace(1.0, 5.0, res_grid)
-    # imgh_range = np.linspace(2.0, 10.0, res_grid)
-    # dist_range = np.linspace(5.0, 10.0, res_grid)
-    ###
-    res_grid = 1
-    epd_range = np.linspace(1.0, 1.0, res_grid)
-    imgh_range = np.linspace(2.0, 2.0, res_grid)
-    dist_range = np.linspace(10.0, 10.0, res_grid)
-    ###
+    epd_range = np.linspace(1.0, 5.0, res_grid)
+    imgh_range = np.linspace(2.0, 10.0, res_grid)
+    dist_range = np.linspace(5.0, 10.0, res_grid)
     
     # set unchanged config
     args = default_inputs()
     hfov_tgt = math.radians(fov) / 2
     args['element'] = num_lens
     args['WAVES'] = waves
+    args['curriculum_steps'] = num_step
     args['iter'] = iter
     args['iter_test'] = iter_test   
     args['iter_last'] = iter_last
@@ -45,7 +41,6 @@ if __name__ == '__main__':
     args['is_sphere'] = is_sphere
     args['is_conic'] = is_conic
     args['is_asphere'] = is_asphere
-    args['save_steps'] = False
 
     ################################################################
     # Trainig data folder under AutoLens/results/
@@ -56,6 +51,11 @@ if __name__ == '__main__':
     dir_results = f'./results/{current_time}_{sequence}_{num_gen}_Training_Designs'
     os.makedirs(dir_results, exist_ok=True)
     args['results_root'] = dir_results
+    
+    # csv file name
+    idx_GA = dir_results.find('GA')
+    csv_name = dir_results + '/' + dir_results[idx_GA:] + '.csv'
+    args['designs_csv'] = csv_name
 
     ################################################################
     # Logging configuration
@@ -80,6 +80,7 @@ if __name__ == '__main__':
     # Step1: Define lens materials
     
     # omit file saving
+    args['save_steps'] = False
     args['save_global'] = False
 
     if num_lens <= 3:
@@ -154,12 +155,9 @@ if __name__ == '__main__':
     ################################################################
     # Step2: Generate designs
 
-    # save last designs
+    # save intermediate & last designs
+    args['save_steps'] = True
     args['save_global'] = True
-    
-    # csv file name
-    idx_GA = dir_results.find('GA')
-    csv_name = dir_results + '/' + dir_results[idx_GA:] + '.csv'
     
     # iterate over design grid points
     for epd in epd_range:

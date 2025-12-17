@@ -20,7 +20,7 @@ def default_inputs():
     """
     args = dict()
     # experiment options
-    args['results_root'] = './results'
+    args['results_root'] = './results'  # directory where design folder is generated
     args['DEBUG'] = True
     args['brute_force'] = True
     args['seed'] = 1
@@ -32,9 +32,9 @@ def default_inputs():
     args['element'] = 2     # number of lens
 
     # curriculum steps
-    args['curriculum_steps'] = 5
-    args['FNUM_START'] = 6
-    args['DIAG_START'] = 2
+    args['curriculum_steps'] = 5    # number of curriculum steps
+    args['FNUM_START'] = 6          # initial fnumber at step 0
+    args['DIAG_START'] = 2          # initial image height at step 0
     args['iter'] = 200
     args['iter_test'] = 20
     args['iter_last'] = 400
@@ -45,19 +45,19 @@ def default_inputs():
     args['ai_lr_decay'] = 0.1
 
     # System lengths
-    args['flange'] = 1.2    # distance from last surface to sensor
-    args['rff'] = 1.33      # d_total = imgh * rff # total distance  
+    args['flange'] = 1.2     # distance from last surface to sensor
+    args['rff'] = 1.33       # d_total = imgh * rff # total distance  
     args['d_aper'] = 1e-4    # aperture thickness, d_total = d_opt + d_apt + flange
 
     # Surface geometry types
-    args['is_sphere'] = True
-    args['is_conic'] = True
-    args['is_asphere'] = True
-    args['ai_degree'] = 6   # degree of even asphere
+    args['is_sphere'] = True    # flag of curvature radius optimization
+    args['is_conic'] = True     # flag of conic constant optimization
+    args['is_asphere'] = True   # flag of aspherical coefficients optimization
+    args['ai_degree'] = 6       # number of even aspherical coefficients
     
     # Refractive index parameters
-    args['WAVES'] = [520]
-    args['GLASSES'] = ['n-bk7'] * 2
+    args['WAVES'] = [520]               # wavelengths in [nm]
+    args['GLASSES'] = ['n-bk7'] * 2     # lens materials
     
     # Ray tracing parameters for curriculum learning
     args['num_ray'] = 256   # number of rays per field point
@@ -66,6 +66,9 @@ def default_inputs():
     # save folder setting
     args['save_global'] = True      # create design root folder
     args['save_steps'] = True       # create step subfolders
+    
+    # csv file for save curriculum designs
+    args['designs_csv'] = './results/curriculum_designs.csv'
     
     return args
 
@@ -200,6 +203,7 @@ def curriculum_learning(lens, args):
     num_ray = args['num_ray']
     save_global = args['save_global']
     save_steps = args['save_steps']
+    csv_name = args['designs_csv']
     
     for step in range(curriculum_steps+1):
         
@@ -214,6 +218,10 @@ def curriculum_learning(lens, args):
         
         # ==> Lens design using RMS errors
         lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, num_source=num_source, num_ray=num_ray, importance_sampling=False, result_dir=result_dir, save_global=save_global, save_steps=save_steps)
+        
+        # save intermediate design in csv file
+        if save_steps & save_global:
+            lens.append_csv(csv_name)
 
     # ==> Refine lens at the last step
     lens.refine(iterations=iter_last, test_per_iter=iter_test_last, num_source=num_source, num_ray=num_ray, centroid=True, importance_sampling=True, result_dir=result_dir, save_global=save_global, save_steps=save_steps)
