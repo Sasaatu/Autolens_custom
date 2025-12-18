@@ -234,28 +234,3 @@ def curriculum_learning(lens, args):
 
     # ==> Final lens
     lens = change_lens(lens, diag_target, fnum_target)
-
-
-def evaluate_spotsize(lens, M=5, spp=128):
-    """ Evaluate spot size of designed lens.
-    """
-    # evaluate spot size
-    mag = 1 / lens.calc_scale_pinhole(DEPTH)
-    obj_r = lens.sensor_size[0]/2/mag
-    wave = lens.wave[0]
-    ray = lens.sample_point_source(M=M,  spp=spp,  depth=DEPTH,  R=obj_r,  pupil=True, wavelength=wave)
-    ray, _, _ = lens.trace(ray)
-    xy = ray.project_to(lens.d_sensor)
-    
-    # plot spot diagram
-    rms_array = np.zeros(M*M)
-    # iterate over field points
-    for m in range(M):
-        for n in range(M):
-            xy_s = xy[:, m, n].detach().cpu().numpy().astype(float)
-            xy_cnt = np.mean(xy_s, axis=0)
-            dists = np.linalg.norm(xy_s - xy_cnt, axis=1)
-            rms_array[M*m+n] = np.sqrt(np.mean(dists**2))
-    rms_value = float(np.mean(rms_array))
-    
-    return rms_value

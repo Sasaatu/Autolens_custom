@@ -8,17 +8,18 @@ from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     # define specifications
-    fov = 60.0              # target FOV in degree
-    tol_hfov = 0.2          # tolerance rate of target hfov against reference hfov
+    fov = 80.0              # target FOV in degree
+    rate_fnum_start = 5.0   # rate of start/target f#
+    rate_diag_start = 0.05  # rate of start/target image height
     waves = [520]           # wavelength list
     num_lens = 3            # number of lens
     res_grid = 3            # number of grid per axis of configuration grid
     num_combo = 3           # number of glass combinations
-    num_step = 5            # number of curriculum step
-    iter = 100              # iteration per step
-    iter_test = 20          # frequency of lens shape & interval correction
-    iter_last = 100         # extra iteration for last step with denser rays
-    iter_test_last = 20     # frequency of lens correction during extra iteration
+    num_step = 10           # number of curriculum step
+    iter = 500              # iteration per step
+    iter_test = 50          # frequency of lens shape & interval correction
+    iter_last = 500         # extra iteration for last step with denser rays
+    iter_test_last = 50     # frequency of lens correction during extra iteration
     is_sphere = True        # flag of curvature radius optimization
     is_conic = False        # flag of conic constant optimization
     is_asphere = False      # flag of aspherical coefficients optimization
@@ -29,10 +30,10 @@ if __name__ == '__main__':
     dist_range = np.linspace(5.0, 10.0, res_grid)
     
     # set unchanged config
-    args = default_inputs()
     hfov_tgt = math.radians(fov) / 2
-    args['element'] = num_lens
+    args = default_inputs()
     args['WAVES'] = waves
+    args['element'] = num_lens
     args['curriculum_steps'] = num_step
     args['iter'] = iter
     args['iter_test'] = iter_test   
@@ -119,8 +120,8 @@ if __name__ == '__main__':
 
                 hfov_ref = math.atan((imgh/2)/dist)
                 fnum = imgh/(2*epd*math.tan(hfov_ref))
-                fnum_start = fnum*1.5
-                diag_start = imgh/2.0
+                fnum_start = fnum * rate_fnum_start
+                diag_start = imgh * rate_diag_start
                 rff = dist / imgh
                 args['HFOV'] = hfov_ref
                 args['FNUM'] = fnum
@@ -158,6 +159,8 @@ if __name__ == '__main__':
     # save intermediate & last designs
     args['save_steps'] = True
     args['save_global'] = True
+    # set target hfov
+    args['HFOV'] = hfov_tgt
     
     # iterate over design grid points
     for epd in epd_range:
@@ -169,16 +172,10 @@ if __name__ == '__main__':
                     imgh = float(imgh)
                     dist = float(dist)
 
-                    hfov_ref = math.atan((imgh/2)/dist)
-                    if hfov_tgt>=hfov_ref*(1-tol_hfov) and hfov_tgt<=hfov_ref*(1+tol_hfov):
-                        hfov_eff = hfov_tgt
-                    else:
-                        hfov_eff = hfov_ref
-                    fnum = imgh/(2*epd*math.tan(hfov_eff))
-                    fnum_start = fnum*1.5
-                    diag_start = imgh/2.0
+                    fnum = imgh/(2*epd*math.tan(hfov_tgt))
+                    fnum_start = fnum * rate_fnum_start
+                    diag_start = imgh * rate_diag_start
                     rff = dist / imgh
-                    args['HFOV'] = hfov_eff
                     args['FNUM'] = fnum
                     args['DIAG'] = imgh
                     args['FNUM_START'] = fnum_start
