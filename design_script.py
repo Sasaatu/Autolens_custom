@@ -7,19 +7,19 @@ if __name__ == '__main__':
     args = default_inputs()
     
     # custom parmeters
-    fov = 70.0
-    epd = 1.5
-    epd_start = 1.0
-    image_height = 8.0
-    image_height_start = 4.0
-    total_distance = 5.0
-    num_lens = 3
-    Glasses = [[1.5346, 56.10]]*num_lens
-    Waves = [675]
-    iter = 500
-    iter_test = 50
-    iter_last = 200
-    iter_test_last = 50
+    fov = 70.0                              # target fov in degree
+    epd = 1.5                               # target epd in mm
+    epd_start = 1.0                         # initial epd value at step 0   
+    image_height = 8.0                      # target image height in mm
+    image_height_start = 4.0                # initial image height at step 0
+    total_distance = 5.0                    # total system distance
+    num_lens = 3                            # number of lens
+    Glasses = [[1.5346, 56.10]]*num_lens    # material list of lens
+    Waves = [675]                           # wavelength list
+    iter = 500                              # iteration per step
+    iter_test = 50                          # frequency of lens shape & interval correction
+    iter_last = 500                         # extra iteration for last step with denser rays
+    iter_test_last = 50                     # frequency of lens correction during extra iteration
     
     # update inputs
     hfov_rad = math.radians(fov) / 2

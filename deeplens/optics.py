@@ -437,6 +437,7 @@ class Lensgroup():
             shrink (bool, optional): whether to shrink the sample plane. Defaults to False.
             pupil (bool, optional): whether to use pupil. Defaults to False.
             wavelength (float, optional): ray wavelength. Defaults to DEFAULT_WAVE.
+            importance_sampling: sample more densely for near-axial rays
         """
         if R is None:
             R = self.surfaces[0].r

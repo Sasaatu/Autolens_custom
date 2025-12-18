@@ -8,20 +8,20 @@ from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     # define specifications
-    fov = 60.0          # target FOV in degree
-    tol_hfov = 0.2      # tolerance to target hfov
-    waves = [520]
-    num_lens = 3
-    res_grid = 3
-    num_combo = 3       # number of glass combinations
-    num_step = 5
-    iter = 100
-    iter_test = 20
-    iter_last = 100
-    iter_test_last = 20
-    is_sphere = True
-    is_conic = False
-    is_asphere = False
+    fov = 60.0              # target FOV in degree
+    tol_hfov = 0.2          # tolerance rate of target hfov against reference hfov
+    waves = [520]           # wavelength list
+    num_lens = 3            # number of lens
+    res_grid = 3            # number of grid per axis of configuration grid
+    num_combo = 3           # number of glass combinations
+    num_step = 5            # number of curriculum step
+    iter = 100              # iteration per step
+    iter_test = 20          # frequency of lens shape & interval correction
+    iter_last = 100         # extra iteration for last step with denser rays
+    iter_test_last = 20     # frequency of lens correction during extra iteration
+    is_sphere = True        # flag of curvature radius optimization
+    is_conic = False        # flag of conic constant optimization
+    is_asphere = False      # flag of aspherical coefficients optimization
 
     # define configuration grid
     epd_range = np.linspace(1.0, 5.0, res_grid)
@@ -189,9 +189,6 @@ if __name__ == '__main__':
                     
                     # create lens
                     lens = design_lens(args)
-
-                    # stock design in csv file
-                    lens.append_csv(csv_name)
 
                     # distruct instance
                     del lens

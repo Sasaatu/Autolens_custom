@@ -20,52 +20,53 @@ def default_inputs():
     """
     args = dict()
     # experiment options
-    args['results_root'] = './results'  # directory where design folder is generated
-    args['DEBUG'] = True
-    args['brute_force'] = True
-    args['seed'] = 1
+    args['results_root'] = './results'      # directory where design folder is generated
+    args['result_dir'] = ''                 # location of design folder, defined by config()
+    args['DEBUG'] = True                    # unused 
+    args['brute_force'] = True              # unused
+    args['seed'] = 1                        # set seed for result reproduction
 
     # Design spec
-    args['HFOV'] = 0.39     # half diagonal FoV in radian, foclen = imgh / 2 / np.tan(hfov)
-    args['FNUM'] = 4.0      # F-number, fnum = foclen/aper_D
-    args['DIAG'] = 3.0      # sensor diagonal length in mm, imgh = diag, hfov = arctan(diag / 2 / foclen)
-    args['element'] = 2     # number of lens
+    args['HFOV'] = 0.39                     # half diagonal FoV in radian, foclen = imgh / 2 / np.tan(hfov)
+    args['FNUM'] = 4.0                      # f#, fnum = foclen/aper_D
+    args['DIAG'] = 3.0                      # sensor diagonal length in mm, imgh = diag, hfov = arctan(diag / 2 / foclen)
+    args['element'] = 2                     # number of lens
 
     # curriculum steps
-    args['curriculum_steps'] = 5    # number of curriculum steps
-    args['FNUM_START'] = 6          # initial fnumber at step 0
-    args['DIAG_START'] = 2          # initial image height at step 0
-    args['iter'] = 200
-    args['iter_test'] = 20
-    args['iter_last'] = 400
-    args['iter_test_last'] = 20
+    args['curriculum_steps'] = 5            # number of curriculum step
+    args['FNUM_START'] = 6                  # initial f# at step 0
+    args['DIAG_START'] = 2                  # initial image height at step 0
+    args['iter'] = 500                      # iteration per step
+    args['iter_test'] = 50                  # frequency of lens shape & interval correction: once per iter_test
+    args['iter_last'] = 500                 # extra iteration for last step with denser rays
+    args['iter_test_last'] = 50             # frequency of lens correction during extra iteration
 
     # Learning rate
-    args['lrs'] = [5e-4, 1e-4, 1e-1, 1e-4]
-    args['ai_lr_decay'] = 0.1
+    args['lrs'] = [5e-4, 1e-4, 1e-1, 1e-4]  # Learning rates: [curvature, diameter, conic, aspheric_coeffs]
+    args['ai_lr_decay'] = 0.1               # Learning rate adjustment over aspheric polynomial orders
 
     # System lengths
-    args['flange'] = 1.2     # distance from last surface to sensor
-    args['rff'] = 1.33       # d_total = imgh * rff # total distance  
-    args['d_aper'] = 1e-4    # aperture thickness, d_total = d_opt + d_apt + flange
+    args['flange'] = 1.2                    # distance from last surface to sensor
+    args['rff'] = 1.33                      # d_total = imgh * rff # total distance  
+    args['d_aper'] = 1e-4                   # aperture thickness, d_total = d_opt + d_apt + flange
 
     # Surface geometry types
-    args['is_sphere'] = True    # flag of curvature radius optimization
-    args['is_conic'] = True     # flag of conic constant optimization
-    args['is_asphere'] = True   # flag of aspherical coefficients optimization
-    args['ai_degree'] = 6       # number of even aspherical coefficients
+    args['is_sphere'] = True                # flag of curvature radius optimization
+    args['is_conic'] = True                 # flag of conic constant optimization
+    args['is_asphere'] = True               # flag of aspherical coefficients optimization
+    args['ai_degree'] = 6                   # number of even aspherical coefficients
     
     # Refractive index parameters
-    args['WAVES'] = [520]               # wavelengths in [nm]
-    args['GLASSES'] = ['n-bk7'] * 2     # lens materials
+    args['WAVES'] = [520]                   # wavelengths list in [nm]
+    args['GLASSES'] = ['n-bk7'] * 2         # lens materials list by name or [nd, vd]
     
     # Ray tracing parameters for curriculum learning
-    args['num_ray'] = 256   # number of rays per field point
-    args['num_source'] = 9  # number of field points per axis
+    args['num_ray'] = 256                   # number of rays per field point
+    args['num_source'] = 9                  # number of field points per axis
 
     # save folder setting
-    args['save_global'] = True      # create design root folder
-    args['save_steps'] = True       # create step subfolders
+    args['save_global'] = True              # create design folder contains CSV/ZMX/PNG/Json of final design
+    args['save_steps'] = True               # create step subfolders contains CSV/ZMX/PNG of intermediate design
     
     # csv file for save curriculum designs
     args['designs_csv'] = './results/curriculum_designs.csv'
@@ -118,9 +119,10 @@ def design_lens(args):
     HFOV = args['HFOV']
     FNUM = args['FNUM']
     DIAG = args['DIAG']
-    result_dir = args['result_dir']
     device = args['device']
+    result_dir = args['result_dir']
     save_global = args['save_global']
+    csv_name = args['designs_csv']
 
     # =====> 1. Load or create lens
     if args['brute_force']:
@@ -159,10 +161,12 @@ def design_lens(args):
 
     if save_global:
         logging.info(f'Actual: FOV {lens.hfov}, IMGH {lens.r_last}, F/{lens.fnum}.')
-
+        
+        # save final design on ZMX/JSON/PNG/CSV
         lens.write_lensfile(f'{result_dir}/final_lens.txt', write_zmx=True)
         lens.write_lens_json(f'{result_dir}/final_lens.json')
         lens.analysis(save_name=f'{result_dir}/final_lens', draw_layout=True)
+        lens.append_csv(csv_name)
 
     return lens
 
@@ -219,7 +223,7 @@ def curriculum_learning(lens, args):
         # ==> Lens design using RMS errors
         lens.refine(lrs=lrs, decay=args['ai_lr_decay'], iterations=iter, test_per_iter=iter_test, num_source=num_source, num_ray=num_ray, importance_sampling=False, result_dir=result_dir, save_global=save_global, save_steps=save_steps)
         
-        # save intermediate design in csv file
+        # save intermediate design in CSV
         if save_steps & save_global:
             lens.append_csv(csv_name)
 
