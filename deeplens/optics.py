@@ -3010,7 +3010,7 @@ SURF 0
 # ====================================================================================
 # Other functions.
 # ====================================================================================
-def create_lens(rff=1.0, flange=1.0, d_aper=0.5, d_sensor=None, hfov=0.6, imgh=6, fnum=2.8, surfnum=4, glass=[], dir='.'):
+def create_lens(rff=1.0, r_flange=0.25, d_aper=0.5, d_sensor=None, hfov=0.6, imgh=6, fnum=2.8, surfnum=4, glass=[], dir='.'):
     """ Create a flat starting point for cellphone lens design.
 
         Aperture is placed 0.2mm i front of the first surface.
@@ -3026,9 +3026,13 @@ def create_lens(rff=1.0, flange=1.0, d_aper=0.5, d_sensor=None, hfov=0.6, imgh=6
     """ 
     foclen = imgh / 2 / np.tan(hfov)
     aper = foclen / fnum / 2
+    
+    # total distance
     if d_sensor is None:
         d_sensor = imgh * rff # total thickness
-
+    # flange distance
+    flange = d_sensor * r_flange
+    
     d_opt = d_sensor - flange - d_aper
     partition = np.clip(np.random.randn(2*surfnum-1) + 1, 1, 2) # consider aperture, position normalization
     partition = [p if i%2==0 else (0.6+0.05*i)*p for i,p in enumerate(partition)]    # distance between lenses should be small

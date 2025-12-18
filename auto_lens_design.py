@@ -46,7 +46,7 @@ def default_inputs():
     args['ai_lr_decay'] = 0.1               # Learning rate adjustment over aspheric polynomial orders
 
     # System lengths
-    args['flange'] = 1.2                    # distance from last surface to sensor
+    args['r_flange'] = 0.25                 # distance from last surface to sensor, against total length
     args['rff'] = 1.33                      # d_total = imgh * rff # total distance  
     args['d_aper'] = 1e-4                   # aperture thickness, d_total = d_opt + d_apt + flange
 
@@ -126,7 +126,7 @@ def design_lens(args):
 
     # =====> 1. Load or create lens
     if args['brute_force']:
-        create_lens(rff=float(args['rff']), flange=float(args['flange']), d_aper=args['d_aper'], hfov=HFOV, imgh=DIAG, fnum=FNUM, surfnum=args['element'], glass=args['GLASSES'], dir=result_dir)
+        create_lens(rff=float(args['rff']), r_flange=float(args['r_flange']), d_aper=args['d_aper'], hfov=HFOV, imgh=DIAG, fnum=FNUM, surfnum=args['element'], glass=args['GLASSES'], dir=result_dir)
         lens_name = f'./{result_dir}/starting_point_hfov{HFOV}_imgh{DIAG}_fnum{FNUM}.txt'
         lens = deeplens.Lensgroup(filename=lens_name, device=device)
         lens.wave = args['WAVES']
