@@ -8,9 +8,9 @@ from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     # define specifications
-    fov = 80.0              # target FOV in degree
-    rate_fnum_start = 5.0   # rate of start/target f#
-    rate_diag_start = 0.05  # rate of start/target image height
+    fov = 12.0              # target FOV in degree
+    rate_fnum_start = 1.5   # rate of start/target f#
+    rate_diag_start = 0.5  # rate of start/target image height
     waves = [520]           # wavelength list
     num_lens = 3            # number of lens
     res_grid = 3            # number of grid per axis of configuration grid

@@ -1560,10 +1560,19 @@ class Lensgroup():
             except:
                 continue
         # adjust sensor radius
+        rs_lens = np.zeros(num_surf-1)
+        for i in range(1,num_surf):
+            rs_lens[i-1] = self.surfaces[i].r
+        r_lens_max = rs_lens.max()
         try:
             ray, _, _ = self.trace(ray)
             xy = ray.project_to(self.d_sensor)
-            self.r_last = xy[:,0].abs().max().item() + outer
+            r_sensor = xy[:,0].abs().max().item() + outer
+            if r_sensor < r_lens_max:
+                # avoid small radius
+                self.r_last = r_lens_max
+            else:
+                self.r_last = r_sensor
         except:
             pass
 
