@@ -664,6 +664,7 @@ class Lensgroup():
         Returns:
             p: Points of intersections with sensor plane.
         """
+        # add sensor surface
         self.surfaces.append(Aspheric(self.r_last, self.d_sensor, 0.0, device=self.device))
         self.materials.append(Material('air'))
 
@@ -1523,12 +1524,14 @@ class Lensgroup():
             outer (float, optional): Outer margin. Defaults to None.
             surface_range (list, optional): Surface range to prune. Defaults to None.
         """
+        # number of aperture and lens surfaces
+        num_surf = len(self.surfaces)
+
         if outer is None:
             outer = self.r_last * 0.05
         
         if surface_range is None:
             surface_range = self.find_diff_surf()
-
 
         # ==> 1. Reset lens to maximum height(sensor radius)
         for i in surface_range:
@@ -1541,28 +1544,40 @@ class Lensgroup():
         ray = self.sample_parallel_2D(R=aper, view=np.rad2deg(view), M=11, entrance_pupil=False)
 
         ps, oss = self.trace_to_sensor(ray=ray, record=True)
+        # iterate over lens & sensor surfaces
         for i in surface_range:
             height = []
-            for os in oss:  # iterate all rays
+            # iterate over rays
+            for os in oss:
                 try:
-                    height.append(os[i+1][0])   # the second index 0 means x coordinate
+                    # stock x ray coordinates
+                    height.append(os[i+1][0])
                 except:
                     continue
-
+            # save max ray height    
             try:
-                self.surfaces[i].r = max(height) + outer
+                self.surfaces[i].r = max(np.abs(height)) + outer
             except:
                 continue
-        
-        # ==> 3. Front surface should be smaller than back surface. This does not apply to fisheye lens.
-        for i in surface_range[:-1]:
-            if self.materials[i].A < self.materials[i+1].A:
-                self.surfaces[i].r = min(self.surfaces[i].r, self.surfaces[i+1].r)
+        # adjust sensor radius
+        try:
+            height = []
+            for os in oss:
+                if len(os) > num_surf+1:
+                    height.append(os[num_surf+1][0])
+            self.r_last = float(max(np.abs(height))) + outer
+        except:
+            pass
 
-        # ==> 4. Remove nan part, also the maximum height should not exceed sensor radius
-        for i in surface_range:
-            max_height = min(self.surfaces[i].max_height(), self.r_last)
-            self.surfaces[i].r = min(self.surfaces[i].r, max_height)
+        # # ==> 3. Front surface should be smaller than back surface. This does not apply to fisheye lens.
+        # for i in surface_range[:-1]:
+        #     if self.materials[i].A < self.materials[i+1].A:
+        #         self.surfaces[i].r = min(self.surfaces[i].r, self.surfaces[i+1].r)
+
+        # # ==> 4. Remove nan part, also the maximum height should not exceed sensor radius
+        # for i in surface_range:
+        #     max_height = min(self.surfaces[i].max_height(), self.r_last)
+        #     self.surfaces[i].r = min(self.surfaces[i].r, max_height)
 
 
     @torch.no_grad()
@@ -2721,9 +2736,17 @@ class Lensgroup():
                     raise Exception('Surface type not implemented.')
                 
                 self.surfaces.append(s)
-                self.materials.append(Material(surf_dict['mat1']))
+                mat_name1 = surf_dict['mat1']
+                # convert in list for ndVd glass
+                if "," in mat_name1:
+                    mat_name1 = [float(x) for x in mat_name1.split(",")]
+                self.materials.append(Material(mat_name1))
 
-        self.materials.append(Material(surf_dict['mat2']))
+        mat_name2 = surf_dict['mat2']
+        # convert in list for ndVd glass
+        if "," in mat_name2:
+            mat_name2 = [float(x) for x in mat_name2.split(",")]
+        self.materials.append(Material(mat_name2))
         self.r_last = data['r_last']
         self.d_sensor = data['d_sensor']
 
