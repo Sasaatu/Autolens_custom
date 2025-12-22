@@ -421,7 +421,6 @@ class Aspheric(Surface):
                 valid = (torch.abs(new_o[...,0])<=height) & (torch.abs(new_o[...,1])<=width) & (ray.ra>0)
             else:
                 valid = (torch.sqrt(new_o[...,0]**2 + new_o[...,1]**2) <= self.r) & (ray.ra>0)
-                valid = torch.ones_like(valid, dtype=torch.bool)
 
             # => Update position
             new_o[~valid] = ray.o[~valid]

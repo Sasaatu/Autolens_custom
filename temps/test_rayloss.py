@@ -9,7 +9,7 @@ lens.is_asphere = False
 lens.is_conic = False
 lens.is_sphere = True
 # change fov
-lens.hfov = 0.20
+lens.hfov = 0.40
 
 # # Export PNG of current layout
 # lens.analysis(draw_layout=True)

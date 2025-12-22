@@ -1561,11 +1561,9 @@ class Lensgroup():
                 continue
         # adjust sensor radius
         try:
-            height = []
-            for os in oss:
-                if len(os) > num_surf+1:
-                    height.append(os[num_surf+1][0])
-            self.r_last = float(max(np.abs(height))) + outer
+            ray, _, _ = self.trace(ray)
+            xy = ray.project_to(self.d_sensor)
+            self.r_last = xy[:,0].abs().max().item() + outer
         except:
             pass
 
