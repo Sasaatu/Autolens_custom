@@ -171,15 +171,18 @@ def design_lens(args):
     return lens
 
 
-def change_lens(lens, diag, fnum):
+def change_lens(lens, diag, fnum, hfov):
     """ Change lens for each curriculum step.
     """
-    # sensor
     lens.r_last = diag / 2
-    lens.hfov = np.arctan(lens.r_last / lens.foclen)
+    lens.fnum = fnum
+    lens.hfov = hfov
+    
+    # sensor
+    lens.foclen = lens.calc_efl()
+    # lens.hfov = np.arctan(lens.r_last / lens.foclen)
 
     # aperture
-    lens.fnum = fnum
     aper_r = lens.foclen / lens.fnum / 2
     lens.surfaces[lens.aper_idx].r = aper_r
     
@@ -198,6 +201,8 @@ def curriculum_learning(lens, args):
     diag_target = args['DIAG']
     diag_end = diag_target * 1.05
     diag_start = args['DIAG_START']
+    hfov_target = args['HFOV']
+    hfov_start = hfov_target*0.2
     result_dir = args['result_dir']
     iter = args['iter']
     iter_test = args['iter_test']
@@ -215,7 +220,8 @@ def curriculum_learning(lens, args):
         args['step'] = step
         diag1 = diag_start + (diag_end - diag_start) * np.sin(step / curriculum_steps * np.pi/2)
         fnum1 = fnum_start + (fnum_end - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
-        lens = change_lens(lens, diag1, fnum1)
+        hfov1 = hfov_start + (hfov_target - hfov_start) * np.sin(step / curriculum_steps * np.pi/2)
+        lens = change_lens(lens, diag1, fnum1, hfov1)
 
         if save_global:
             logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
@@ -233,4 +239,4 @@ def curriculum_learning(lens, args):
         logging.info('==> Training finish.')
 
     # ==> Final lens
-    lens = change_lens(lens, diag_target, fnum_target)
+    lens = change_lens(lens, diag_target, fnum_target, hfov_target)
