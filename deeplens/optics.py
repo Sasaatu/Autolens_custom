@@ -1560,32 +1560,16 @@ class Lensgroup():
                 self.surfaces[i].r = max(np.abs(height)) + outer
             except:
                 continue
-        # # adjust sensor radius
-        # rs_lens = np.zeros(num_surf-1)
-        # for i in range(1,num_surf):
-        #     rs_lens[i-1] = self.surfaces[i].r
-        # r_lens_max = rs_lens.max()
-        # try:
-        #     ray, _, _ = self.trace(ray)
-        #     xy = ray.project_to(self.d_sensor)
-        #     r_sensor = xy[:,0].abs().max().item() + outer
-        #     if r_sensor < r_lens_max:
-        #         # avoid small radius
-        #         self.r_last = r_lens_max
-        #     else:
-        #         self.r_last = r_sensor
-        # except:
-        #     pass
 
-        # # ==> 3. Front surface should be smaller than back surface. This does not apply to fisheye lens.
-        # for i in surface_range[:-1]:
-        #     if self.materials[i].A < self.materials[i+1].A:
-        #         self.surfaces[i].r = min(self.surfaces[i].r, self.surfaces[i+1].r)
+        # ==> 3. Front surface should be smaller than back surface. This does not apply to fisheye lens.
+        for i in surface_range[:-1]:
+            if self.materials[i].A < self.materials[i+1].A:
+                self.surfaces[i].r = min(self.surfaces[i].r, self.surfaces[i+1].r)
 
-        # # ==> 4. Remove nan part, also the maximum height should not exceed sensor radius
-        # for i in surface_range:
-        #     max_height = min(self.surfaces[i].max_height(), self.r_last)
-        #     self.surfaces[i].r = min(self.surfaces[i].r, max_height)
+        # ==> 4. Remove nan part, also the maximum height should not exceed sensor radius
+        for i in surface_range:
+            max_height = min(self.surfaces[i].max_height(), self.r_last)
+            self.surfaces[i].r = min(self.surfaces[i].r, max_height)
 
 
     @torch.no_grad()
@@ -2400,9 +2384,8 @@ class Lensgroup():
             if i % test_per_iter == 0:
                 # => Save lens
                 with torch.no_grad():
-                    if i > 0:
-                        if shape_control:
-                            self.correct_shape(d_aper=0.1)
+                    if (i > 0) and shape_control:
+                        self.correct_shape(d_aper=0.1)
                     if save_steps and save_global:
                         self.analysis(f'{result_dir}/iter{i}', draw_layout=True)
 

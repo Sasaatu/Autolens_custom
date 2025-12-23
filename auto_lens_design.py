@@ -172,7 +172,7 @@ def design_lens(args):
     return lens
 
 
-def change_lens(lens, diag, fnum, hfov):
+def change_lens(lens, diag, fnum, hfov, rate_r=1.0):
     """ Change lens for each curriculum step.
     """
     lens.r_last = diag / 2
@@ -181,7 +181,13 @@ def change_lens(lens, diag, fnum, hfov):
     
     # sensor
     lens.foclen = lens.calc_efl()
-    # lens.hfov = np.arctan(lens.r_last / lens.foclen)
+
+    # enlarge lens radius
+    if rate_r != 1.0:
+        num_surf = len(lens.surfaces)
+        for i in range(num_surf):
+            surf_r = lens.surfaces[i].r
+            lens.surfaces[i].r = surf_r * rate_r
 
     # aperture
     aper_r = lens.foclen / lens.fnum / 2
@@ -222,7 +228,7 @@ def curriculum_learning(lens, args):
         diag1 = diag_start + (diag_end - diag_start) * np.sin(step / curriculum_steps * np.pi/2)
         fnum1 = fnum_start + (fnum_end - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
         hfov1 = hfov_start + (hfov_target - hfov_start) * np.sin(step / curriculum_steps * np.pi/2)
-        lens = change_lens(lens, diag1, fnum1, hfov1)
+        lens = change_lens(lens, diag1, fnum1, hfov1, rate_r=1.5)
 
         if save_global:
             logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
