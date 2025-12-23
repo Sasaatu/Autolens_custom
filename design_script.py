@@ -17,9 +17,9 @@ if __name__ == '__main__':
     Glasses = [[1.5346, 56.10]]*num_lens    # material list of lens
     Waves = [675]                           # wavelength list
     iter = 500                              # iteration per step
-    iter_test = 50                          # frequency of lens shape & interval correction
+    iter_test = 25                          # frequency of lens shape & interval correction
     iter_last = 500                         # extra iteration for last step with denser rays
-    iter_test_last = 50                     # frequency of lens correction during extra iteration
+    iter_test_last = 25                     # frequency of lens correction during extra iteration
     
     # update inputs
     hfov_rad = math.radians(fov) / 2

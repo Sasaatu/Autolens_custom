@@ -18,7 +18,7 @@ from transformers import get_cosine_schedule_with_warmup
 
 from .surfaces import *
 from .utils import *
-from .basics import GEO_SPP, EPSILON, WAVE_RGB
+from .basics import GEO_SPP, EPSILON, RATE_SENSOR
 
 class Lensgroup():
     """
@@ -665,7 +665,8 @@ class Lensgroup():
             p: Points of intersections with sensor plane.
         """
         # add sensor surface
-        self.surfaces.append(Aspheric(self.r_last, self.d_sensor, 0.0, device=self.device))
+        r_sensor = self.r_last*RATE_SENSOR
+        self.surfaces.append(Aspheric(r_sensor, self.d_sensor, 0.0, device=self.device))
         self.materials.append(Material('air'))
 
         # trace rays through lens system
@@ -1559,22 +1560,22 @@ class Lensgroup():
                 self.surfaces[i].r = max(np.abs(height)) + outer
             except:
                 continue
-        # adjust sensor radius
-        rs_lens = np.zeros(num_surf-1)
-        for i in range(1,num_surf):
-            rs_lens[i-1] = self.surfaces[i].r
-        r_lens_max = rs_lens.max()
-        try:
-            ray, _, _ = self.trace(ray)
-            xy = ray.project_to(self.d_sensor)
-            r_sensor = xy[:,0].abs().max().item() + outer
-            if r_sensor < r_lens_max:
-                # avoid small radius
-                self.r_last = r_lens_max
-            else:
-                self.r_last = r_sensor
-        except:
-            pass
+        # # adjust sensor radius
+        # rs_lens = np.zeros(num_surf-1)
+        # for i in range(1,num_surf):
+        #     rs_lens[i-1] = self.surfaces[i].r
+        # r_lens_max = rs_lens.max()
+        # try:
+        #     ray, _, _ = self.trace(ray)
+        #     xy = ray.project_to(self.d_sensor)
+        #     r_sensor = xy[:,0].abs().max().item() + outer
+        #     if r_sensor < r_lens_max:
+        #         # avoid small radius
+        #         self.r_last = r_lens_max
+        #     else:
+        #         self.r_last = r_sensor
+        # except:
+        #     pass
 
         # # ==> 3. Front surface should be smaller than back surface. This does not apply to fisheye lens.
         # for i in surface_range[:-1]:
@@ -1849,7 +1850,8 @@ class Lensgroup():
         else:
             if with_sensor:
                 # here we use diagonal distance as image height
-                self.surfaces.append(Aspheric(self.r_last, self.d_sensor, 0.0, device=self.device))
+                r_sensor = self.r_last*RATE_SENSOR
+                self.surfaces.append(Aspheric(r_sensor, self.d_sensor, 0.0, device=self.device))
 
             # ==> Draw surface
             for i, s in enumerate(self.surfaces):
