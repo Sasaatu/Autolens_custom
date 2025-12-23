@@ -34,6 +34,7 @@ def default_inputs():
 
     # curriculum steps
     args['curriculum_steps'] = 5            # number of curriculum step
+    args['HFOV_START'] = 0.1                # initial hfov angle at step 0
     args['FNUM_START'] = 6                  # initial f# at step 0
     args['DIAG_START'] = 2                  # initial image height at step 0
     args['iter'] = 500                      # iteration per step
@@ -202,7 +203,7 @@ def curriculum_learning(lens, args):
     diag_end = diag_target * 1.05
     diag_start = args['DIAG_START']
     hfov_target = args['HFOV']
-    hfov_start = hfov_target*0.2
+    hfov_start = args['HFOV_START']
     result_dir = args['result_dir']
     iter = args['iter']
     iter_test = args['iter_test']

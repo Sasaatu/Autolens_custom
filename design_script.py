@@ -8,6 +8,7 @@ if __name__ == '__main__':
     
     # custom parmeters
     fov = 70.0                              # target fov in degree
+    fov_start = 30.0                        # initial hfov angle at step 0
     epd = 1.5                               # target epd in mm
     epd_start = 1.0                         # initial epd value at step 0   
     image_height = 8.0                      # target image height in mm
@@ -23,6 +24,7 @@ if __name__ == '__main__':
     
     # update inputs
     hfov_rad = math.radians(fov) / 2
+    hfov_start = math.radians(fov_start) / 2
     fnum = image_height/(2*epd*math.tan(hfov_rad))
     fnum_start = fnum*(epd/epd_start)
     diag_start = image_height_start
@@ -30,6 +32,7 @@ if __name__ == '__main__':
     args['HFOV'] = hfov_rad
     args['FNUM'] = fnum
     args['DIAG'] = image_height
+    args['HFOV_START'] = hfov_start
     args['FNUM_START'] = fnum_start
     args['DIAG_START'] = diag_start
     args['rff'] = rff

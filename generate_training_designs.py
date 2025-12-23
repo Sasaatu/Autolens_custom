@@ -8,9 +8,10 @@ from auto_lens_design import default_inputs, config, design_lens
 
 if __name__ == '__main__':
     # define specifications
-    fov = 12.0              # target FOV in degree
+    fov = 100               # target FOV in degree
+    rate_hfov_start = 0.2   # rate of start/target hfov
     rate_fnum_start = 1.5   # rate of start/target f#
-    rate_diag_start = 0.5  # rate of start/target image height
+    rate_diag_start = 0.5   # rate of start/target image height
     waves = [520]           # wavelength list
     num_lens = 3            # number of lens
     res_grid = 3            # number of grid per axis of configuration grid
@@ -120,12 +121,14 @@ if __name__ == '__main__':
 
                 hfov_ref = math.atan((imgh/2)/dist)
                 fnum = imgh/(2*epd*math.tan(hfov_ref))
+                hfov_start = hfov_ref * rate_hfov_start
                 fnum_start = fnum * rate_fnum_start
                 diag_start = imgh * rate_diag_start
                 rff = dist / imgh
                 args['HFOV'] = hfov_ref
                 args['FNUM'] = fnum
                 args['DIAG'] = imgh
+                args['HFOV_START'] = hfov_start
                 args['FNUM_START'] = fnum_start
                 args['DIAG_START'] = diag_start
                 args['rff'] = rff
@@ -161,6 +164,7 @@ if __name__ == '__main__':
     args['save_global'] = True
     # set target hfov
     args['HFOV'] = hfov_tgt
+    args['HFOV_START'] = hfov_tgt * rate_hfov_start
     
     # iterate over design grid points
     for epd in epd_range:
