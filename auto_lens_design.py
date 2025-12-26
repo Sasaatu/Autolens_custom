@@ -228,7 +228,12 @@ def curriculum_learning(lens, args):
         diag1 = diag_start + (diag_end - diag_start) * np.sin(step / curriculum_steps * np.pi/2)
         fnum1 = fnum_start + (fnum_end - fnum_start) * np.sin(step / curriculum_steps * np.pi/2)
         hfov1 = hfov_start + (hfov_target - hfov_start) * np.sin(step / curriculum_steps * np.pi/2)
-        lens = change_lens(lens, diag1, fnum1, hfov1, rate_r=1.5)
+        # extend surface radius for new config.
+        if step == 0:
+            rate_r = 1.0
+        else:
+            rate_r = 1.5
+        lens = change_lens(lens, diag1, fnum1, hfov1, rate_r=rate_r)
 
         if save_global:
             logging.info(f'==> Curriculum learning step {step}, target: FOV {round(lens.hfov * 2 * 57.3, 2)}, DIAG {round(2 * lens.r_last, 2)}mm, F/{lens.fnum}.')
