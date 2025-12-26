@@ -232,7 +232,7 @@ def curriculum_learning(lens, args):
         if step == 0:
             rate_r = 1.0
         else:
-            rate_r = 1.5
+            rate_r = 1.2
         lens = change_lens(lens, diag1, fnum1, hfov1, rate_r=rate_r)
 
         if save_global:
