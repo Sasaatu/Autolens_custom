@@ -43,7 +43,7 @@ def default_inputs():
     args['iter_test_last'] = 50             # frequency of lens correction during extra iteration
 
     # Learning rate
-    args['lrs'] = [5e-4, 1e-4, 1e-1, 1e-4]  # Learning rates: [curvature, diameter, conic, aspheric_coeffs]
+    args['lrs'] = [1e-5, 1e-4, 1e-6, 1e-6]  # Learning rates: [curvature, diameter, conic, aspheric_coeffs]
     args['ai_lr_decay'] = 0.1               # Learning rate adjustment over aspheric polynomial orders
 
     # System lengths

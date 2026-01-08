@@ -21,6 +21,7 @@ if __name__ == '__main__':
     iter_test = 25                          # frequency of lens shape & interval correction
     iter_last = 500                         # extra iteration for last step with denser rays
     iter_test_last = 25                     # frequency of lens correction during extra iteration
+    is_asphere = False                      # flag of aspherical coefficients optimization
     
     # update inputs
     hfov_rad = math.radians(fov) / 2
@@ -43,6 +44,7 @@ if __name__ == '__main__':
     args['iter_test'] = iter_test
     args['iter_last'] = iter_last
     args['iter_test_last'] = iter_test_last
+    args['is_asphere'] = is_asphere
     
     # arrange design configuration
     args = config(args)

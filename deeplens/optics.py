@@ -1557,7 +1557,7 @@ class Lensgroup():
                     continue
             # save max ray height    
             try:
-                dtype_height = height.dtype
+                dtype_height = height[0].dtype
                 self.surfaces[i].r = np.max(np.abs(height, dtype=dtype_height)) + outer
             except:
                 continue
